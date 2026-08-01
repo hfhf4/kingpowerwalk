@@ -1,0 +1,61 @@
+# This is a static site with no build step (see CLAUDE.md). There is nothing to
+# compile and no dependency install — so most of this file is about keeping heavy
+# authoring sources and OS junk out of a repo that GitHub Pages serves verbatim.
+
+# --- Authoring sources -------------------------------------------------------
+# Only the exported glTF/GLB belongs in /assets. Keep the source files local.
+*.blend
+*.blend[0-9]*
+*.fbx
+*.FBX
+*.max
+*.ma
+*.mb
+*.c4d
+*.spp
+*.xcf
+*.psd
+*.psb
+
+# Raw/unprocessed texture + photo sources (export compressed versions instead)
+/assets/**/raw/
+/assets/**/_src/
+*.tif
+*.tiff
+*.dng
+*.cr2
+*.nef
+*.arw
+
+# --- Tooling that should never be required to run this site ------------------
+node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+.cache/
+dist/
+build/
+.parcel-cache/
+
+# --- Editors / OS ------------------------------------------------------------
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+*~
+*.swp
+*.swo
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# --- Local scratch -----------------------------------------------------------
+*.log
+.env
+.env.local
+/tmp/
+/scratch/
