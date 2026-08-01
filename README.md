@@ -33,12 +33,13 @@ rather than a local server.
 
 | Input | Action |
 | --- | --- |
-| `W` `A` `S` `D` | Walk (camera-relative) |
+| `W` `A` `S` `D` | Walk (world-axis — Phase 1 makes it camera-relative) |
 | Mouse drag | Look around |
-| `V` | Toggle first-person / third-person |
+| `V` | Preview the first-person / third-person toggle |
 
-The view toggle is also an on-screen button, bottom right. Your choice persists across
-reloads via `localStorage`.
+Movement is on the player rig so the camera and the placeholder avatar stay together.
+The `V` toggle is a stub that just moves the camera to a fixed behind-and-above offset
+and shows the placeholder body — Phase 2 builds the real orbit-follow camera.
 
 ## Layout
 
@@ -46,10 +47,8 @@ reloads via `localStorage`.
 index.html          entry point — markup only, no inline JS
 CLAUDE.md           working agreement: the non-negotiables
 SPEC.md             the full build spec
-/css
-  └── overlay.css      2D HUD + view-toggle button
 /js
-  └── view-switch.js   FPS/TPS toggle (placeholder; rebuilt properly in Phase 2)
+  └── view-switch.js   FPS/TPS toggle stub (rebuilt properly in Phase 2)
 /assets
   ├── /models       deck.glb, avatar.glb, skyline.glb
   ├── /animations   idle/walk/run clips if shipped separately

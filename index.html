@@ -1,141 +1,61 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-  <title>Mahanakhon SkyWalk · 314 m — kingpowerwalk</title>
-  <meta name="description" content="A walkable reconstruction of the King Power Mahanakhon rooftop observation deck, Bangkok.">
-
-  <!--
-    A-Frame 1.8.0 — PINNED. Latest release, published 2026-06-23.
-    Never point this at /releases/latest/. See CLAUDE.md §2 before bumping.
-  -->
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Mahanakhon Rooftop VR</title>
+  <!-- A-Frame core. PINNED — 1.8.0 is the current release (published 2026-06-23,
+       verified against the npm registry dist-tags and aframevr/aframe releases).
+       Never point this at /releases/latest/. See CLAUDE.md §2 before bumping. -->
   <script src="https://aframe.io/releases/1.8.0/aframe.min.js"></script>
-
-  <!-- Behaviour lives in /js. No inline JS in this file (CLAUDE.md, Conventions). -->
+  <!-- Components live in /js — no inline JS in this file (CLAUDE.md, Conventions). -->
   <script src="js/view-switch.js"></script>
-
-  <link rel="stylesheet" href="css/overlay.css">
 </head>
-<body>
+<body style="margin:0;">
+  <a-scene renderer="colorManagement: true; antialias: true"
+           fog="type: linear; color: #cdd9e5; near: 45; far: 130">
+    <a-sky color="#9fc2e0"></a-sky>
 
-<a-scene
-  fog="type: linear; color: #b6c9d8; near: 70; far: 620"
-  renderer="antialias: true; colorManagement: true; sortObjects: true"
-  vr-mode-ui="enabled: false"
-  device-orientation-permission-ui="enabled: false"
-  background="color: #8fb4d4">
+    <!-- ===================== DECK (blocky placeholder, rough real scale) =====================
+         Phase 3 replaces this with a Blender-modeled glTF of the real deck. -->
+    <a-plane class="deck" rotation="-90 0 0" width="30" height="30" color="#2f2f33"></a-plane>
 
-  <!--
-    ========================================================================
-    PHASE 0 PLACEHOLDER GEOMETRY
-    Blocky stand-in for the real deck. Proportions are approximate and are
-    NOT the reference geometry — Phase 3 replaces all of this with a
-    Blender-modelled glTF (assets/models/deck.glb). Don't refine it here.
-    Deck is 50 m square, sitting at y = 0. Real roof height is 314 m.
-    ========================================================================
-  -->
+    <!-- Parapet -->
+    <a-box position="0 0.55 -15" width="30"  height="1.1" depth="0.4" color="#17181b"></a-box>
+    <a-box position="0 0.55 15"  width="30"  height="1.1" depth="0.4" color="#17181b"></a-box>
+    <a-box position="-15 0.55 0" width="0.4" height="1.1" depth="30"  color="#17181b"></a-box>
+    <a-box position="15 0.55 0"  width="0.4" height="1.1" depth="30"  color="#17181b"></a-box>
 
-  <!-- Sun -->
-  <a-entity light="type: ambient; color: #cfe0ee; intensity: 0.75"></a-entity>
-  <a-entity light="type: directional; color: #fff4e2; intensity: 0.85; castShadow: false"
-            position="-30 50 20"></a-entity>
+    <!-- Central lift core / spire base placeholder -->
+    <a-box position="0 3 0" width="6" height="6" depth="6" color="#3a3d42"></a-box>
 
-  <!-- Deck slab -->
-  <a-box id="deck" position="0 -0.2 0" width="50" height="0.4" depth="50"
-         material="color: #9d9fa6; roughness: 0.95"></a-box>
+    <!-- Glass SkyWalk tray -->
+    <a-plane class="deck" position="0 0.02 -16.5" rotation="-90 0 0" width="5" height="4"
+             color="#bfe9ff" opacity="0.28" transparent="true"></a-plane>
 
-  <!-- Parapet: N / E / W solid, S split to leave a gap for the glass tray -->
-  <a-box class="parapet" position="0 0.55 -24.75" width="50" height="1.1" depth="0.5"
-         material="color: #7f8590; roughness: 0.9"></a-box>
-  <a-box class="parapet" position="-24.75 0.55 0" width="0.5" height="1.1" depth="50"
-         material="color: #7f8590; roughness: 0.9"></a-box>
-  <a-box class="parapet" position="24.75 0.55 0" width="0.5" height="1.1" depth="50"
-         material="color: #7f8590; roughness: 0.9"></a-box>
-  <a-box class="parapet" position="-16 0.55 24.75" width="18" height="1.1" depth="0.5"
-         material="color: #7f8590; roughness: 0.9"></a-box>
-  <a-box class="parapet" position="16 0.55 24.75" width="18" height="1.1" depth="0.5"
-         material="color: #7f8590; roughness: 0.9"></a-box>
+    <!-- Simplified skyline ring (conveys 314 m altitude; Phase 4 replaces with real/low-poly city) -->
+    <a-box position="-40 15 -30" width="8"  height="30" depth="8"  color="#8aa0b6"></a-box>
+    <a-box position="35 20 -45"  width="10" height="40" depth="10" color="#7e94ab"></a-box>
+    <a-box position="-55 25 20"  width="12" height="50" depth="12" color="#8aa0b6"></a-box>
+    <a-box position="50 12 30"   width="9"  height="24" depth="9"  color="#93a8bd"></a-box>
 
-  <!-- Glass SkyWalk tray, cantilevered off the south edge -->
-  <a-box id="glass-tray" position="0 -0.05 29" width="7" height="0.12" depth="9"
-         material="color: #cfe6f2; opacity: 0.34; transparent: true; roughness: 0.05; metalness: 0.1"></a-box>
-  <a-box position="-3.6 0.5 29" width="0.15" height="1.1" depth="9"
-         material="color: #b7cdd8; opacity: 0.45; transparent: true"></a-box>
-  <a-box position="3.6 0.5 29" width="0.15" height="1.1" depth="9"
-         material="color: #b7cdd8; opacity: 0.45; transparent: true"></a-box>
-  <a-box position="0 0.5 33.4" width="7" height="1.1" depth="0.15"
-         material="color: #b7cdd8; opacity: 0.45; transparent: true"></a-box>
+    <!-- Lighting -->
+    <a-entity light="type: hemisphere; intensity: 0.9; color: #ffffff; groundColor: #444"></a-entity>
+    <a-entity light="type: directional; intensity: 0.7" position="1 4 2"></a-entity>
 
-  <!-- Central core / spire base -->
-  <a-box id="core" position="-7 7 -7" width="11" height="14" depth="11"
-         material="color: #8a8f99; roughness: 0.9"></a-box>
-  <a-cylinder position="-7 20 -7" radius="0.8" height="12"
-              material="color: #6f747d; roughness: 0.8"></a-cylinder>
-
-  <!-- Rooftop bar footprint -->
-  <a-box id="bar" position="14 1.6 11" width="13" height="3.2" depth="8"
-         material="color: #b3a394; roughness: 0.85"></a-box>
-
-  <!-- Top run of the pixel facade, hinted below the deck edge -->
-  <a-box position="-25.5 -3 -12" width="3" height="5" depth="7" material="color: #878d97"></a-box>
-  <a-box position="-25.5 -8 6" width="3" height="6" depth="9" material="color: #7d838d"></a-box>
-  <a-box position="25.5 -4 -3" width="3" height="6" depth="8" material="color: #878d97"></a-box>
-  <a-box position="25.5 -10 14" width="3" height="5" depth="6" material="color: #7d838d"></a-box>
-  <a-box position="8 -6 -25.5" width="8" height="6" depth="3" material="color: #838994"></a-box>
-
-  <!--
-    Bangkok, 314 m down. A flat stand-in so the altitude reads and the drop off
-    the tray isn't into empty space. Phase 4 replaces it with OSM-extruded
-    geometry + a real skyline backdrop.
-  -->
-  <a-plane position="0 -314 0" rotation="-90 0 0" width="4000" height="4000"
-           material="color: #6d7f8c; roughness: 1"></a-plane>
-
-  <!--
-    ========================================================================
-    PLAYER
-    Phase 0 uses stock A-Frame controls: look-controls + wasd-controls on the
-    camera, which gives camera-relative movement for free. Phase 1 replaces
-    this with js/character-controller.js and a navmesh constraint — right now
-    there is nothing stopping you walking off the edge.
-    ========================================================================
-  -->
-  <a-entity id="camera"
-            camera="fov: 72"
-            position="0 1.6 18"
-            look-controls="pointerLockEnabled: false; magicWindowTrackingEnabled: false"
-            wasd-controls="acceleration: 42; fly: false"
-            view-switch="avatar: #avatar; button: #view-toggle; distance: 3.6">
-  </a-entity>
-
-  <!--
-    Placeholder avatar. Hidden in FPS, shown ahead of the camera in TPS.
-    Phase 1 swaps this box for a rigged Mixamo glTF at assets/models/avatar.glb.
-  -->
-  <a-entity id="avatar" visible="false">
-    <a-cylinder position="0 0.9 0" radius="0.28" height="1.15"
-                material="color: #d8643c; roughness: 0.7"></a-cylinder>
-    <a-sphere position="0 1.66 0" radius="0.19"
-              material="color: #e8a882; roughness: 0.8"></a-sphere>
-    <!-- nose-ish marker so facing direction is legible on a placeholder -->
-    <a-box position="0 1.66 -0.2" width="0.08" height="0.08" depth="0.12"
-           material="color: #8c4a2a"></a-box>
-  </a-entity>
-
-</a-scene>
-
-<!-- ---------------------------------------------------------------- UI -->
-<div id="hud">
-  <div id="hud-title">Mahanakhon SkyWalk · 314 m</div>
-  <div id="hud-hint">
-    <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> walk · drag to look ·
-    <kbd>V</kbd> change view
-  </div>
-  <div id="hud-phase">Phase 0 — placeholder geometry</div>
-</div>
-
-<button id="view-toggle" type="button" aria-live="polite">View: First-person</button>
-
+    <!-- ===================== PLAYER =====================
+         Desktop: click-drag to look, WASD to move. Mobile: gyro. Quest: 6DoF + Enter VR.
+         Press V to preview the FPS/TPS toggle.
+         wasd on the rig keeps the camera + avatar together (world-axis; Phase 1
+         makes it camera-relative and swaps the box avatar for a rigged Mixamo one). -->
+    <a-entity id="player" view-switch wasd-controls="acceleration: 25; fly: false" position="0 0 6">
+      <a-camera id="cam" position="0 1.6 0" wasd-controls="enabled: false"></a-camera>
+      <!-- Placeholder avatar ("you") — Phase 1 replaces with a rigged Mixamo glTF -->
+      <a-entity id="you" visible="false">
+        <a-cylinder position="0 0.9 0" radius="0.28" height="1.2" color="#c94f4f"></a-cylinder>
+        <a-sphere   position="0 1.7 0" radius="0.22" color="#e0a37a"></a-sphere>
+      </a-entity>
+    </a-entity>
+  </a-scene>
 </body>
 </html>
