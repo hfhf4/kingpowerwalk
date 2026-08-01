@@ -1,0 +1,111 @@
+/* 2D overlay chrome that sits on top of the A-Frame canvas.
+   Kept out of index.html so the entry point stays markup-only. */
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+  background: #8fb4d4;
+}
+
+body {
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+               "Helvetica Neue", Arial, sans-serif;
+}
+
+/* --- info panel, top left ------------------------------------------------ */
+
+#hud {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 10;
+  padding: 12px 16px;
+  border-radius: 10px;
+  color: #f2f6fa;
+  background: rgba(16, 26, 36, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  max-width: min(74vw, 460px);
+  pointer-events: none;
+  user-select: none;
+}
+
+#hud-title {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+#hud-hint {
+  margin-top: 7px;
+  font-size: 12.5px;
+  line-height: 1.65;
+  color: rgba(242, 246, 250, 0.86);
+}
+
+#hud-phase {
+  margin-top: 7px;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(242, 246, 250, 0.5);
+}
+
+kbd {
+  display: inline-block;
+  min-width: 1em;
+  padding: 1px 6px;
+  margin-right: 2px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-bottom-width: 2px;
+  background: rgba(255, 255, 255, 0.12);
+  font: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* --- view toggle, bottom right ------------------------------------------ */
+
+#view-toggle {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 10;
+  padding: 10px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(16, 26, 36, 0.62);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  color: #f2f6fa;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  user-select: none;
+  transition: background 120ms ease, transform 120ms ease;
+}
+
+#view-toggle:hover {
+  background: rgba(28, 44, 60, 0.78);
+}
+
+#view-toggle:active {
+  transform: translateY(1px);
+}
+
+#view-toggle:focus-visible {
+  outline: 2px solid #8fc7f0;
+  outline-offset: 2px;
+}
+
+@media (max-width: 600px) {
+  #hud { top: 10px; left: 10px; padding: 10px 12px; }
+  #hud-hint { font-size: 11.5px; }
+  #view-toggle { right: 10px; bottom: 10px; }
+}
