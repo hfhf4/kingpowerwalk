@@ -71,7 +71,7 @@ SPEC.md             the full build spec
   ├── character-controller.js   movement, jump/gravity, animation, navmesh
   ├── deck-features.js          sign, viewpoint hotspots, fall fade
   ├── gradient-sky.js           procedural sky gradient shader
-  ├── photo-skybox.js           real 360 photo backdrop
+  ├── photo-skybox.js           360 photo backdrop (present but unused)
   ├── third-person-camera.js    orbit-follow camera + collision
   ├── touch-controls.js         mobile thumbstick + jump
   └── view-switch.js            FPS/TPS toggle: input, mode, persistence
@@ -82,7 +82,7 @@ SPEC.md             the full build spec
   │     ├── deck.glb     deck surface + parapet, fitted to the real roof
   │     └── skyline.glb  7,550 OSM buildings + the Chao Phraya
   ├── /animations        (clips are embedded in avatar.glb for now)
-  ├── /panoramas         skyline.jpg — the real 360 backdrop (see its README)
+  ├── /panoramas         empty by design — photo backdrop dropped, see its README
   ├── /textures
   └── /nav
         └── navmesh.glb  walkable surface of the deck
@@ -258,7 +258,8 @@ the finished experience, tested on the headset.
 - [x] **Phase 4** — OSM-extruded Bangkok, the Chao Phraya, gradient sky and haze.
       *(Day/night cycle not attempted.)*
 - [x] **Phase 5** — Jump and the 314 m drop, ambient audio, signage, viewpoint hotspots,
-      UI overlay, touch controls. *(Real photo backdrop pending the panorama file.)*
+      UI overlay, touch controls. *(Photo backdrop considered and dropped — the
+      procedural sky is what ships. See `/assets/panoramas`.)*
 
 > **Track A complete.** Everything below is the VR track.
 
