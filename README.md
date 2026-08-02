@@ -203,11 +203,17 @@ unchanged; the walk animation was added and root motion removed.
 Its animation clips come from [Mixamo](https://www.mixamo.com) and are used under
 Adobe's licence.
 
-**The tower model needs its provenance recorded.** `tower.glb` is derived from a
-SketchUp STL of King Power MahaNakhon supplied by the repo owner. SPEC §12 requires any
-third-party Mahanakhon model to have its licence read before it enters a public repo,
-and this repo is public. If the STL came from 3D Warehouse, a print site, or anywhere
-other than the owner's own modelling, its licence and attribution belong here.
+`assets/models/tower.glb` is derived from
+**["King Power MahaNakhon"](https://3dwarehouse.sketchup.com/model/4461a0f4-de95-496e-aeef-5f099f449211/King-Power-MahaNakhon)**,
+published on Trimble 3D Warehouse and used under the
+[3D Warehouse Terms of Use](https://3dwarehouse.sketchup.com/tos.html). The geometry is
+unchanged apart from scaling to 314 m, a plan rotation, an axis conversion and winding
+repairs; see *The tower* above.
+
+The source STL is **not** redistributed here — only the converted glTF, per CLAUDE.md §3.
+Note that this is an assets rule, not a licensing one: the GLB carries the same geometry
+as the STL, so the Terms of Use apply to it just the same. Anyone forking this repo
+should read those terms rather than assume the conversion changes anything.
 
 Still to come (SPEC §12): OpenStreetMap data is **ODbL and requires attribution** once
 the skyline goes in at Phase 4.
