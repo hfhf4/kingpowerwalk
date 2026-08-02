@@ -9,6 +9,7 @@
        Never point this at /releases/latest/. See CLAUDE.md §2 before bumping. -->
   <script src="https://aframe.io/releases/1.8.0/aframe.min.js"></script>
   <!-- Components live in /js — no inline JS in this file (CLAUDE.md, Conventions). -->
+  <script src="js/gradient-sky.js"></script>
   <script src="js/character-controller.js"></script>
   <script src="js/third-person-camera.js"></script>
   <script src="js/view-switch.js"></script>
@@ -16,7 +17,7 @@
 </head>
 <body>
   <a-scene renderer="colorManagement: true; antialias: true"
-           fog="type: linear; color: #b9cad8; near: 140; far: 2200">
+           fog="type: linear; color: #cdd9e5; near: 350; far: 4600">
 
     <a-assets>
       <!-- Kana by "ddd" (sketchfab.com/endonoriko), CC-BY-4.0. Mixamo rig.
@@ -28,11 +29,18 @@
       <a-asset-item id="tower-model" src="assets/models/tower.glb"></a-asset-item>
       <!-- Deck surface + parapet, generated to match the real roof footprint. -->
       <a-asset-item id="deck-model" src="assets/models/deck.glb"></a-asset-item>
+      <!-- Bangkok, extruded from OSM footprints. Data (c) OpenStreetMap
+           contributors, ODbL — see README. Visual only. -->
+      <a-asset-item id="skyline-model" src="assets/models/skyline.glb"></a-asset-item>
       <!-- Walkable surface. Never rendered — the controller only casts rays at it. -->
       <a-asset-item id="navmesh-model" src="assets/nav/navmesh.glb"></a-asset-item>
     </a-assets>
 
-    <a-sky color="#9fc2e0"></a-sky>
+    <!-- Procedural gradient rather than a flat dome: the pale horizon band is
+         what makes 314 m read as height. Fog uses the same horizon colour so
+         distant geometry dissolves into it instead of ending at a hard edge. -->
+    <a-sky radius="12000"
+           material="shader: gradient-sky; topColor: #3f7cad; horizonColor: #cdd9e5; exponent: 0.8; horizonBias: -0.3"></a-sky>
 
     <!-- ===================== THE TOWER =====================
          King Power MahaNakhon, from the SketchUp STL. 4562 triangles, one flat
@@ -44,10 +52,15 @@
     <!-- The walkable deck, sitting on the roof slab at y=0. -->
     <a-entity id="deck" class="collider" gltf-model="#deck-model"></a-entity>
 
-    <!-- Street level, 314 m down. A flat stand-in so there is real ground to
-         see over the parapet; Phase 4 replaces it with OSM-extruded Bangkok. -->
-    <a-plane id="ground" position="0 -314 0" rotation="-90 0 0"
-             width="6000" height="6000" material="color: #6c7a86; roughness: 1"></a-plane>
+    <!-- Bangkok. Real building footprints extruded to tagged heights, plus the
+         Chao Phraya. Shares the tower's plan rotation so the city lines up with
+         the building it surrounds. -->
+    <a-entity id="skyline" gltf-model="#skyline-model"></a-entity>
+
+    <!-- Ground under the city: streets, blocks, everything OSM has no polygon
+         for. Sits just below the extrusions' base. -->
+    <a-plane id="ground" position="0 -314.2 0" rotation="-90 0 0"
+             width="14000" height="14000" material="color: #71787c; roughness: 1"></a-plane>
 
     <!-- Lighting -->
     <a-entity light="type: hemisphere; intensity: 0.9; color: #ffffff; groundColor: #444"></a-entity>
@@ -87,6 +100,14 @@
   <div id="hint">
     <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> walk ·
     <kbd>Shift</kbd> faster · drag to look
+  </div>
+
+  <!-- ODbL requires attribution wherever the data is shown, so this is on
+       screen rather than only in the README. -->
+  <div id="credit">
+    Building data ©
+    <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>
+    contributors, <a href="https://opendatacommons.org/licenses/odbl/" target="_blank" rel="noopener">ODbL</a>
   </div>
 
   <button id="view-toggle" type="button" aria-pressed="false">First-person</button>
