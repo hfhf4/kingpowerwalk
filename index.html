@@ -4,11 +4,11 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Mahanakhon Rooftop VR</title>
-  <!-- A-Frame core. PINNED — 1.8.0 is the current release (published 2026-06-23,
+  <!-- A-Frame core. PINNED â€” 1.8.0 is the current release (published 2026-06-23,
        verified against the npm registry dist-tags and aframevr/aframe releases).
-       Never point this at /releases/latest/. See CLAUDE.md §2 before bumping. -->
+       Never point this at /releases/latest/. See CLAUDE.md Â§2 before bumping. -->
   <script src="https://aframe.io/releases/1.8.0/aframe.min.js"></script>
-  <!-- Components live in /js — no inline JS in this file (CLAUDE.md, Conventions). -->
+  <!-- Components live in /js â€” no inline JS in this file (CLAUDE.md, Conventions). -->
   <script src="js/gradient-sky.js"></script>
   <script src="js/character-controller.js"></script>
   <script src="js/third-person-camera.js"></script>
@@ -32,12 +32,12 @@
       <!-- The tower, converted from the SketchUp STL. Roof slab at y=0, base at
            y=-314, antenna masts to y=+10. Visual only. -->
       <a-asset-item id="tower-model" src="assets/models/tower.glb"></a-asset-item>
-      <!-- Deck surface + parapet, generated to match the real roof footprint. -->
+      <!-- Photo-derived Level 78 deck: terrace, glass tray, stairs and The Peak. -->
       <a-asset-item id="deck-model" src="assets/models/deck.glb"></a-asset-item>
       <!-- Bangkok, extruded from OSM footprints. Data (c) OpenStreetMap
-           contributors, ODbL — see README. Visual only. -->
+           contributors, ODbL â€” see README. Visual only. -->
       <a-asset-item id="skyline-model" src="assets/models/skyline.glb"></a-asset-item>
-      <!-- Walkable surface. Never rendered — the controller only casts rays at it. -->
+      <!-- Walkable surface. Never rendered â€” the controller only casts rays at it. -->
       <a-asset-item id="navmesh-model" src="assets/nav/navmesh.glb"></a-asset-item>
     </a-assets>
 
@@ -58,7 +58,7 @@
          facade material. Kept whole so the drop to the street reads from the
          deck edge. class="collider" keeps the third-person camera out of the
          rooftop plant rooms. -->
-    <a-entity id="tower" class="collider" gltf-model="#tower-model"></a-entity>
+    <a-entity id="tower" class="collider player-collider" gltf-model="#tower-model"></a-entity>
 
     <!-- The walkable deck, sitting on the roof slab at y=0. -->
     <a-entity id="deck" class="collider" gltf-model="#deck-model"></a-entity>
@@ -101,7 +101,7 @@
          V to switch between first and third person.
 
          character-controller owns the rig position and the avatar's yaw.
-         look-controls lives on the PIVOT, not the camera — that is what makes
+         look-controls lives on the PIVOT, not the camera â€” that is what makes
          the third-person camera orbit the avatar's head instead of turning on
          the spot. The camera keeps an identity rotation and is simply offset
          back along the pivot, so both views share one heading and switching
@@ -123,22 +123,22 @@
                   raycaster="objects: .clickable; far: 60"></a-entity>
       </a-entity>
 
-      <!-- "You" — rigged Mixamo avatar, yawed to face travel by the controller.
+      <!-- "You" â€” rigged Mixamo avatar, yawed to face travel by the controller.
            Visibility is driven by the camera's actual distance, not the mode. -->
       <a-entity id="you" visible="false" gltf-model="#avatar-model"></a-entity>
     </a-entity>
   </a-scene>
 
   <div id="hint">
-    <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> walk ·
-    <kbd>Shift</kbd> faster · <kbd>Space</kbd> jump ·
-    drag to look · <kbd>V</kbd> view · click a ring to travel
+    <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> walk Â·
+    <kbd>Shift</kbd> faster Â· <kbd>Space</kbd> jump Â·
+    drag to look Â· <kbd>V</kbd> view Â· click a ring to travel
   </div>
 
   <!-- ODbL requires attribution wherever the data is shown, so this is on
        screen rather than only in the README. -->
   <div id="credit">
-    Building data ©
+    Building data Â©
     <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>
     contributors, <a href="https://opendatacommons.org/licenses/odbl/" target="_blank" rel="noopener">ODbL</a>
   </div>
@@ -155,3 +155,4 @@
   <div id="fade" aria-hidden="true"></div>
 </body>
 </html>
+

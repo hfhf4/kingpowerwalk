@@ -1,7 +1,7 @@
 /* global AFRAME, THREE */
 
 /**
- * character-controller — desktop locomotion for the deck (SPEC §10, Phase 1).
+ * character-controller â€” desktop locomotion for the deck (SPEC Â§10, Phase 1).
  *
  * Attach to the player rig. It owns the rig's position and the avatar's yaw,
  * and drives the avatar's animation from how fast it is actually moving.
@@ -10,7 +10,7 @@
  *     turning the mouse turns which way W walks.
  *   - Idle <-> Walk blended by speed rather than switched, so easing off the
  *     key eases out of the walk cycle.
- *   - Hold Shift to move faster. There is no separate run clip — the walk clip
+ *   - Hold Shift to move faster. There is no separate run clip â€” the walk clip
  *     is played proportionally faster, which is why `clipStrideSpeed` matters
  *     (see below).
  *   - The avatar yaws to face travel direction, smoothed so it banks around
@@ -21,7 +21,7 @@
  *     instead of sticking to it.
  *
  * On `clipStrideSpeed`: the source Walk.fbx was exported from Mixamo *with*
- * root motion — the hips travelled 1.607 m over the 1.25 s clip. That motion
+ * root motion â€” the hips travelled 1.607 m over the 1.25 s clip. That motion
  * was stripped when assets/models/avatar.glb was built (it would otherwise
  * fight this component for control of position), but the ratio it implies,
  * 1.29 m/s, is the speed the animation was authored to walk at. Playing the
@@ -36,7 +36,9 @@ AFRAME.registerComponent('character-controller', {
     avatar:           { type: 'selector' },
     camera:           { type: 'selector' },
     navmesh:          { type: 'selector' },
-    walkSpeed:        { type: 'number', default: 1.29 },
+    colliders:        { type: 'string', default: '.player-collider' },
+    bodyRadius:       { type: 'number', default: 0.35 },
+    walkSpeed:        { type: 'number', default: 2.58 },
     sprintMultiplier: { type: 'number', default: 2.4 },
     clipStrideSpeed:  { type: 'number', default: 1.29 },
     turnRate:         { type: 'number', default: 10 },
@@ -60,6 +62,7 @@ AFRAME.registerComponent('character-controller', {
     this.idleAction = null;
     this.walkAction = null;
     this.navMeshObject = null;
+    this.colliderObjects = null;
 
     this.walkWeight = 0;
     // Start facing away from the default third-person camera, which sits at +Z.
@@ -72,7 +75,7 @@ AFRAME.registerComponent('character-controller', {
     this.grounded = true;
     this.falling = false;
 
-    // Scratch objects — reused every frame so tick allocates nothing.
+    // Scratch objects â€” reused every frame so tick allocates nothing.
     this.forward = new THREE.Vector3();
     this.right = new THREE.Vector3();
     this.move = new THREE.Vector3();
@@ -134,7 +137,7 @@ AFRAME.registerComponent('character-controller', {
     var found = null;
     model.traverse(function (o) {
       if (!found && o.isMesh) { found = o; }
-      // Keep the object itself visible so raycasts still hit it — only the
+      // Keep the object itself visible so raycasts still hit it â€” only the
       // material is switched off. THREE skips invisible *objects* when casting.
       if (o.isMesh && o.material) { o.material.visible = false; }
     });
@@ -207,7 +210,7 @@ AFRAME.registerComponent('character-controller', {
       //
       // Object3D.getWorldDirection() reports the +Z axis, but a camera looks
       // down -Z, so this has to be negated. THREE.Camera overrides the method
-      // to account for that — this is the A-Frame entity's Object3D, not the
+      // to account for that â€” this is the A-Frame entity's Object3D, not the
       // camera itself, so it uses the base implementation and does not.
       this.data.camera.object3D.getWorldDirection(this.forward);
       this.forward.negate();
@@ -231,8 +234,12 @@ AFRAME.registerComponent('character-controller', {
             // where you aimed. The navmesh only holds you while your feet are
             // on it.
             var pos = this.el.object3D.position;
-            pos.x += this.move.x * speed * dt;
-            pos.z += this.move.z * speed * dt;
+            var airDx = this.move.x * speed * dt;
+            var airDz = this.move.z * speed * dt;
+            if (!this.horizontalBlocked(airDx, airDz)) {
+              pos.x += airDx;
+              pos.z += airDz;
+            }
           }
           this.yaw = Math.atan2(this.move.x, this.move.z);
         }
@@ -281,6 +288,30 @@ AFRAME.registerComponent('character-controller', {
     }
   },
 
+  getPlayerColliders: function () {
+    if (this.colliderObjects && this.colliderObjects.length) { return this.colliderObjects; }
+    var els = this.el.sceneEl.querySelectorAll(this.data.colliders);
+    var out = [];
+    for (var i = 0; i < els.length; i++) {
+      var obj = els[i].getObject3D('mesh');
+      if (obj) { out.push(obj); }
+    }
+    this.colliderObjects = out;
+    return out;
+  },
+
+  horizontalBlocked: function (dx, dz) {
+    var reach = Math.hypot(dx, dz);
+    if (reach < 1e-6) { return false; }
+    var pos = this.el.object3D.position;
+    this.rayOrigin.set(pos.x, pos.y + 0.9, pos.z);
+    this.move.set(dx / reach, 0, dz / reach);
+    this.raycaster.set(this.rayOrigin, this.move);
+    this.raycaster.far = reach + this.data.bodyRadius;
+    var colliders = this.getPlayerColliders();
+    return colliders.length && this.raycaster.intersectObjects(colliders, true).length > 0;
+  },
+
   /**
    * Move the rig by `dist` along `dir`, staying on the navmesh. If the full
    * step is blocked, try each axis alone so the player slides along a wall
@@ -291,13 +322,13 @@ AFRAME.registerComponent('character-controller', {
     var dx = dir.x * dist;
     var dz = dir.z * dist;
 
-    if (this.onNavmesh(pos.x + dx, pos.z + dz)) {
+    if (!this.horizontalBlocked(dx, dz) && this.onNavmesh(pos.x + dx, pos.z + dz)) {
       pos.x += dx;
       pos.z += dz;
       return;
     }
-    if (this.onNavmesh(pos.x + dx, pos.z)) { pos.x += dx; return; }
-    if (this.onNavmesh(pos.x, pos.z + dz)) { pos.z += dz; }
+    if (!this.horizontalBlocked(dx, 0) && this.onNavmesh(pos.x + dx, pos.z)) { pos.x += dx; return; }
+    if (!this.horizontalBlocked(0, dz) && this.onNavmesh(pos.x, pos.z + dz)) { pos.z += dz; }
   },
 
   onNavmesh: function (x, z) {
@@ -322,7 +353,7 @@ AFRAME.registerComponent('character-controller', {
   updateAnimation: function (speed, dt) {
     if (!this.mixer) { return; }
 
-    // No Jump clip ships in avatar.glb — only Idle and Walk — so the hop is
+    // No Jump clip ships in avatar.glb â€” only Idle and Walk â€” so the hop is
     // faked by holding the walk cycle at a mid-stride frame, legs apart, and
     // freezing playback. It reads as a leap without inventing a clip.
     if (!this.grounded && this.walkAction) {
@@ -352,3 +383,4 @@ AFRAME.registerComponent('character-controller', {
     this.mixer.update(dt);
   }
 });
+
