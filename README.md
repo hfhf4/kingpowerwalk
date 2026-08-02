@@ -210,10 +210,23 @@ published on Trimble 3D Warehouse and used under the
 unchanged apart from scaling to 314 m, a plan rotation, an axis conversion and winding
 repairs; see *The tower* above.
 
-The source STL is **not** redistributed here — only the converted glTF, per CLAUDE.md §3.
-Note that this is an assets rule, not a licensing one: the GLB carries the same geometry
-as the STL, so the Terms of Use apply to it just the same. Anyone forking this repo
-should read those terms rather than assume the conversion changes anything.
+**No authorship of the building model is claimed here.** It is someone else's work,
+reused under that licence to build a walkthrough. This project's own contribution is the
+conversion, the deck, the controller and the scene around it — not the tower.
+
+`tower.glb` ships as scene geometry for a browser walkthrough, not as an asset for
+download: it is not offered, catalogued or packaged as a model, and it is not sold. It
+lives in the repo because GitHub Pages serves the site *from* the repo — on Pages there
+is no way to publish a web walkthrough without the geometry being a fetchable file.
+
+The source STL is deliberately not committed (CLAUDE.md §3 keeps `/assets` glTF-only).
+Worth being clear that this is an assets convention rather than a licensing device: the
+GLB carries the same geometry, so the Terms of Use apply to it exactly as they do to the
+STL. Anyone reusing this repo should read them rather than assume the conversion changed
+something.
+
+"King Power MahaNakhon" is a real building and a trademarked name. Nothing here is
+affiliated with, sponsored by, or endorsed by its owners or operators.
 
 Still to come (SPEC §12): OpenStreetMap data is **ODbL and requires attribution** once
 the skyline goes in at Phase 4.
