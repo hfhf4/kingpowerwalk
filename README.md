@@ -7,9 +7,10 @@ between first-person and third-person views.
 Static HTML5 site. No build step. Runs in a desktop browser now; immersive VR on a Meta
 Quest comes later (see *Roadmap*).
 
-**Status: Phase 4 — Bangkok.** A rigged avatar walks the actual MahaNakhon roof, 314 m
-up, with the whole tower modelled beneath and 7,550 real Bangkok buildings extruded from
-OpenStreetMap spreading out below, fading into haze at the horizon.
+**Status: Phase 5 — desktop complete.** A rigged avatar walks the actual MahaNakhon
+roof, 314 m up, over 7,550 real Bangkok buildings from OpenStreetMap. Jump, fall the full
+314 m and respawn; travel between viewpoints; wind and city ambience. This finishes
+Track A — everything after this is the VR track.
 
 ---
 
@@ -36,8 +37,13 @@ rather than a local server.
 | --- | --- |
 | `W` `A` `S` `D` | Walk, relative to where the camera is looking |
 | `Shift` (hold) | Move faster |
+| `Space` | Jump |
 | Mouse drag | Look around |
 | `V` | Switch first-person / third-person |
+| Click a ring | Travel to that viewpoint |
+
+On touch devices a thumbstick and a jump button appear; look stays on drag. They are
+hidden entirely on anything that doesn't report touch support.
 
 The avatar turns to face the way it's travelling, and blends between its idle and walk
 clips based on how fast it is actually moving. You can't walk off the deck or through
@@ -61,9 +67,13 @@ SPEC.md             the full build spec
 /css
   └── overlay.css               controls hint, ODbL credit, view-toggle button
 /js
-  ├── character-controller.js   movement, animation blending, navmesh constraint
+  ├── ambient-audio.js          synthesised wind + city hum, mute toggle
+  ├── character-controller.js   movement, jump/gravity, animation, navmesh
+  ├── deck-features.js          sign, viewpoint hotspots, fall fade
   ├── gradient-sky.js           procedural sky gradient shader
+  ├── photo-skybox.js           real 360 photo backdrop
   ├── third-person-camera.js    orbit-follow camera + collision
+  ├── touch-controls.js         mobile thumbstick + jump
   └── view-switch.js            FPS/TPS toggle: input, mode, persistence
 /assets
   ├── /models
@@ -72,6 +82,7 @@ SPEC.md             the full build spec
   │     ├── deck.glb     deck surface + parapet, fitted to the real roof
   │     └── skyline.glb  7,550 OSM buildings + the Chao Phraya
   ├── /animations        (clips are embedded in avatar.glb for now)
+  ├── /panoramas         skyline.jpg — the real 360 backdrop (see its README)
   ├── /textures
   └── /nav
         └── navmesh.glb  walkable surface of the deck
@@ -168,6 +179,37 @@ Positions are quantized to 14 bits via `KHR_mesh_quantization`, roughly 0.75 m o
 precision over a 12 km span. Invisible on a city seen from 300 m up, and it halves the
 file to 4.1 MB. three.js reads the extension natively.
 
+### Jumping and the drop
+
+`Space` jumps. Gravity and ground contact are probed against the **navmesh**, not the
+deck mesh — the navmesh is already inset from the edge, so "no navmesh underfoot" is
+exactly the condition for falling, and the two never disagree.
+
+Grounded movement stays navmesh-constrained, which is Phase 1's "can't leave the deck".
+Getting off means **jumping the parapet**: while airborne the constraint is deliberately
+lifted, so you keep your momentum and go over. That is also realistic — the parapet is
+1.1 m and a jump apexes at ~0.66 m, so you clear it horizontally rather than stepping off.
+
+Fall past y = −300 and `player-fell` fires: the screen fades to black, the player is put
+back on the deck while it's dark, and it fades back in. Resetting at full black is what
+hides the teleport.
+
+There is no Jump clip in `avatar.glb` — only Idle and Walk — so the hop is faked by
+holding the walk cycle at a mid-stride frame with playback frozen. It reads as a leap
+without inventing a clip.
+
+### Sound
+
+Wind and a faint city hum, **synthesised with the Web Audio API** rather than loaded from
+files: no audio assets exist in the repo, it costs nothing to download, it loops
+seamlessly by construction, and it keeps `/assets` free of media whose licence would need
+checking (SPEC §12). Two detuned bandpassed noise layers for wind, heavily lowpassed
+brown noise for the city, and a very quiet 100 Hz tone for the mains undertone. Filter
+frequencies and gains drift slowly so nothing sits still.
+
+Browsers refuse audio without a user gesture, so the context is only created on the first
+pointer or key event — building it earlier leaves it suspended and silent. Mute persists.
+
 ### A trap worth knowing about
 
 **`a-sky` defaults to a radius of 500 m, and the dome writes depth.** Anything further
@@ -215,7 +257,10 @@ the finished experience, tested on the headset.
       *(Glass SkyWalk tray still outstanding from this phase.)*
 - [x] **Phase 4** — OSM-extruded Bangkok, the Chao Phraya, gradient sky and haze.
       *(Day/night cycle not attempted.)*
-- [ ] **Phase 5** — Polish: ambient audio, signage, viewpoint hotspots, UI overlay.
+- [x] **Phase 5** — Jump and the 314 m drop, ambient audio, signage, viewpoint hotspots,
+      UI overlay, touch controls. *(Real photo backdrop pending the panorama file.)*
+
+> **Track A complete.** Everything below is the VR track.
 
 **Track B — VR / Quest**
 

@@ -121,3 +121,100 @@ kbd {
   #credit { top: 10px; right: 10px; font-size: 10px; padding: 5px 8px; }
   #view-toggle { right: 10px; bottom: 72px; }
 }
+
+
+/* --- sound toggle, above the view toggle -------------------------------- */
+
+#btn-sound {
+  position: fixed;
+  right: 16px;
+  bottom: 128px;
+  z-index: 10;
+  min-width: 124px;
+  padding: 9px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(12, 16, 21, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  color: rgba(238, 243, 248, 0.9);
+  font: inherit;
+  font-size: 12.5px;
+  cursor: pointer;
+  user-select: none;
+  transition: background 120ms ease;
+}
+
+#btn-sound:hover { background: rgba(26, 36, 47, 0.75); }
+#btn-sound:focus-visible { outline: 2px solid #7cc0ee; outline-offset: 2px; }
+#btn-sound[aria-pressed="false"] { color: rgba(238, 243, 248, 0.5); }
+
+/* --- touch controls ------------------------------------------------------ */
+/* display:none until touch-controls confirms a touch device. */
+
+#stick {
+  display: none;
+  position: fixed;
+  left: 22px;
+  bottom: 96px;
+  z-index: 11;
+  width: 124px;
+  height: 124px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(12, 16, 21, 0.38);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  touch-action: none;
+}
+
+#knob {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 52px;
+  height: 52px;
+  margin: 0;
+  border-radius: 50%;
+  background: rgba(238, 243, 248, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+#btn-jump {
+  display: none;
+  position: fixed;
+  right: 24px;
+  bottom: 200px;
+  z-index: 11;
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(12, 16, 21, 0.55);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  color: #eef3f8;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  touch-action: none;
+  user-select: none;
+}
+
+/* --- fade for the long drop --------------------------------------------- */
+
+#fade {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: #000;
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (max-width: 600px) {
+  #btn-sound { right: 10px; bottom: 118px; min-width: 104px; font-size: 11.5px; }
+  #hint { max-width: 58vw; }
+}
