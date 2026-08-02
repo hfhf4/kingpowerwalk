@@ -7,13 +7,14 @@
   "glassTray": { "depth": 3.28125, "width": 19.2, "area": 63.0, "at": "front" },
   "upperViewingArea": { "rearX": -12.0, "frontX": -2.0, "width": 11.0, "elevation": 4.0 },
   "stairs": { "rearX": -2.0, "frontX": 7.5, "topWidth": 11.0, "bottomWidth": 8.2, "steps": 20 },
+  "elevator": { "centre": [-14.0, -6.4], "diameter": 5.0, "height": 4.2 },
   "railings": { "height": 1.1, "navmeshInset": 0.9 },
   "spawn": [10.0, 0.05, 0.0],
   "viewpoints": [[17.0, 0.05, 0.0], [10.0, 0.05, 6.5], [-7.0, 4.05, 0.0]],
   "assumptions": [
     "Depth is exactly twice width, per approved user plan.",
     "Glass tray spans the full front width; 63 m2 fixes its depth at 3.28125 m.",
-    "Upper platform and stair dimensions are photo-derived blockout estimates.",
+    "Elevator, upper platform and stair dimensions are photo-derived blockout estimates.",
     "The public-deck envelope is centred inside the approximately 45.958 by 19.182 m committed roof bounds."
   ]
 }
