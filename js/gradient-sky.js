@@ -12,8 +12,14 @@
  * Procedural rather than a photographic panorama: SPEC §12 limits photos and
  * panoramas to the owner's own, and this needs no assets at all.
  *
+ * IMPORTANT — give a-sky an explicit large `radius`. A-Frame defaults it to 500,
+ * and the dome writes depth, so with the default anything further than 500 m
+ * fails the depth test and is silently never drawn. That hides the entire city
+ * and most of the ground plane while leaving raycasts working perfectly, which
+ * makes it look like a fog or material problem rather than a clipping one.
+ *
  * Usage:
- *   <a-sky material="shader: gradient-sky; topColor: #3f7cad; ..."></a-sky>
+ *   <a-sky radius="12000" material="shader: gradient-sky; topColor: #3f7cad; ..."></a-sky>
  */
 AFRAME.registerShader('gradient-sky', {
   schema: {
@@ -22,10 +28,11 @@ AFRAME.registerShader('gradient-sky', {
     // How fast the gradient falls off towards the horizon. Higher keeps the
     // deep colour further down; lower spreads the pale band wider.
     exponent:     { type: 'number', default: 0.8, is: 'uniform' },
-    // Shifts the horizon line up or down in metres of world Y. The deck sits
-    // at y=0 but the ground is at y=-314, so the visual horizon belongs
-    // roughly halfway down, not at the origin.
-    horizonY:     { type: 'number', default: -150, is: 'uniform' }
+    // Shifts the pale band below eye level, unitless in -1..1. Expressed as a
+    // fraction of the dome rather than world metres so it stays correct
+    // whatever radius the sky is given — and the sky has to be given a large
+    // one, see the note below.
+    horizonBias:  { type: 'number', default: -0.3, is: 'uniform' }
   },
 
   vertexShader: [
@@ -41,12 +48,13 @@ AFRAME.registerShader('gradient-sky', {
     'uniform vec3 topColor;',
     'uniform vec3 horizonColor;',
     'uniform float exponent;',
-    'uniform float horizonY;',
+    'uniform float horizonBias;',
     'varying vec3 vWorldPosition;',
     'void main() {',
-    // Normalise height over the dome, measured from the shifted horizon.
-    '  float h = normalize(vWorldPosition - vec3(0.0, horizonY, 0.0)).y;',
-    '  float t = pow(max(h, 0.0), exponent);',
+    // Direction only, so the gradient is independent of the dome's radius.
+    '  float h = normalize(vWorldPosition).y;',
+    '  h = (h - horizonBias) / (1.0 - horizonBias);',
+    '  float t = pow(clamp(h, 0.0, 1.0), exponent);',
     '  gl_FragColor = vec4(mix(horizonColor, topColor, t), 1.0);',
     '}'
   ].join('\n')

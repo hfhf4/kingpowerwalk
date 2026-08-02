@@ -7,9 +7,9 @@ between first-person and third-person views.
 Static HTML5 site. No build step. Runs in a desktop browser now; immersive VR on a Meta
 Quest comes later (see *Roadmap*).
 
-**Status: Phase 3 — the real tower.** The blocky placeholder is gone. A rigged avatar
-walks the actual MahaNakhon roof, 314 m up, with the whole tower modelled beneath and
-street level visible over the parapet.
+**Status: Phase 4 — Bangkok.** A rigged avatar walks the actual MahaNakhon roof, 314 m
+up, with the whole tower modelled beneath and 7,550 real Bangkok buildings extruded from
+OpenStreetMap spreading out below, fading into haze at the horizon.
 
 ---
 
@@ -30,14 +30,14 @@ models load (CORS), so prefer the server.
 which Pages provides; that's why the eventual Quest testing happens on the deployed URL
 rather than a local server.
 
-## Controls (Phase 0)
+## Controls
 
 | Input | Action |
 | --- | --- |
 | `W` `A` `S` `D` | Walk, relative to where the camera is looking |
 | `Shift` (hold) | Move faster |
 | Mouse drag | Look around |
-| `V` | Preview the first-person / third-person toggle |
+| `V` | Switch first-person / third-person |
 
 The avatar turns to face the way it's travelling, and blends between its idle and walk
 clips based on how fast it is actually moving. You can't walk off the deck or through
@@ -59,16 +59,18 @@ index.html          entry point — markup only, no inline JS
 CLAUDE.md           working agreement: the non-negotiables
 SPEC.md             the full build spec
 /css
-  └── overlay.css               controls hint + view-toggle button
+  └── overlay.css               controls hint, ODbL credit, view-toggle button
 /js
   ├── character-controller.js   movement, animation blending, navmesh constraint
+  ├── gradient-sky.js           procedural sky gradient shader
   ├── third-person-camera.js    orbit-follow camera + collision
   └── view-switch.js            FPS/TPS toggle: input, mode, persistence
 /assets
   ├── /models
   │     ├── avatar.glb   rigged avatar, Idle + Walk clips
   │     ├── tower.glb    the whole tower, roof at y=0, base at y=-314
-  │     └── deck.glb     deck surface + parapet, fitted to the real roof
+  │     ├── deck.glb     deck surface + parapet, fitted to the real roof
+  │     └── skyline.glb  7,550 OSM buildings + the Chao Phraya
   ├── /animations        (clips are embedded in avatar.glb for now)
   ├── /textures
   └── /nav
@@ -139,6 +141,41 @@ as a thin surface just above the roof, with a parapet wherever a cell borders so
 that is not walkable. The navmesh is the same mask eroded by 1 m so the avatar's
 shoulders cannot overhang the edge — 628 m² of deck, 436 m² of it walkable.
 
+### The skyline
+
+`skyline.glb` is 7,550 Bangkok building footprints from OpenStreetMap, extruded to their
+tagged heights — `height` where present, otherwise `building:levels` × 3.2 m. Everything
+within 1.2 km survives; past that only buildings with a tagged height, since untagged
+shophouses 3 km out are invisible clutter. Nothing beyond 4 km. The Chao Phraya and the
+city's ponds come from the same export as flat water polygons.
+
+**Aligning it to the tower was the interesting part.** Phase 3 rotated the tower ~70.3°
+to square its roof to the world grid, so world axes no longer point north and OSM data
+cannot be dropped in at true bearing. Two things resolve it:
+
+- The SketchUp model's axes were already true north/east. OSM's minimum-area rectangle
+  for the Mahanakhon footprint sits at **−70.06°**; PCA on the STL roof slab gave
+  **−70.33°**. Two unrelated datasets agreeing within 0.3° is what confirms it.
+- So the same rotation aligns both, and the build script recomputes it from the STL
+  rather than hard-coding it, so tower and city cannot drift apart.
+
+The residual offset is solved by putting OSM's Mahanakhon footprint centroid on the
+STL's own mid-shaft centroid — the one building both datasets contain. Mid-shaft rather
+than base, because the STL's base includes a retail podium (107 × 113 m) that OSM's
+building outline (76 × 92 m) does not.
+
+Positions are quantized to 14 bits via `KHR_mesh_quantization`, roughly 0.75 m of vertex
+precision over a 12 km span. Invisible on a city seen from 300 m up, and it halves the
+file to 4.1 MB. three.js reads the extension natively.
+
+### A trap worth knowing about
+
+**`a-sky` defaults to a radius of 500 m, and the dome writes depth.** Anything further
+away fails the depth test and is silently never drawn — no error, no warning. It hid the
+entire city and most of the ground plane, while raycasts against them kept working
+perfectly, which makes it present as a fog or material bug rather than a clipping one.
+The sky is now given `radius="12000"`, inside the camera's 20000 far plane.
+
 ### Asset pipeline
 
 Source FBX files are deliberately **not** committed (see `.gitignore`); only the glTF
@@ -176,7 +213,8 @@ the finished experience, tested on the headset.
 - [x] **Phase 2** — FPS/TPS toggle with orbit-follow camera and camera collision.
 - [x] **Phase 3** — Real tower from STL, deck fitted to the roof, street level 314 m below.
       *(Glass SkyWalk tray still outstanding from this phase.)*
-- [ ] **Phase 4** — Skyline & atmosphere: OSM-extruded Bangkok, haze, 314 m altitude read.
+- [x] **Phase 4** — OSM-extruded Bangkok, the Chao Phraya, gradient sky and haze.
+      *(Day/night cycle not attempted.)*
 - [ ] **Phase 5** — Polish: ambient audio, signage, viewpoint hotspots, UI overlay.
 
 **Track B — VR / Quest**
@@ -228,5 +266,9 @@ something.
 "King Power MahaNakhon" is a real building and a trademarked name. Nothing here is
 affiliated with, sponsored by, or endorsed by its owners or operators.
 
-Still to come (SPEC §12): OpenStreetMap data is **ODbL and requires attribution** once
-the skyline goes in at Phase 4.
+`assets/models/skyline.glb` is built from **© [OpenStreetMap](https://www.openstreetmap.org/copyright)
+contributors**, licensed under the
+**[Open Database License (ODbL)](https://opendatacommons.org/licenses/odbl/)**. The
+attribution is shown on screen in the running site as well as here, since ODbL requires
+it to travel with the data. The extruded geometry is a Produced Work derived from that
+database.
