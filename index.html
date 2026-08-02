@@ -80,7 +80,7 @@
     <a-entity id="navmesh" gltf-model="#navmesh-model"></a-entity>
 
     <!-- ===================== DECK FURNITURE ===================== -->
-    <a-entity id="sign" position="0 1.55 -8.1">
+    <a-entity id="sign" position="11 1.55 -7">
       <a-entity canvas-sign="title: Mahanakhon SkyWalk; subtitle: 314 m"></a-entity>
       <a-box position="-1.5 -0.62 0" width="0.08" height="1.2" depth="0.08"
              material="color: #2a2f36; roughness: 0.7"></a-box>
@@ -89,12 +89,12 @@
     </a-entity>
 
     <!-- Viewpoints. Targets are on the navmesh; check against it if you move them. -->
-    <a-entity class="clickable" position="17 0 -5"
-              viewpoint="player: #player; target: 17 0 -5; label: East end"></a-entity>
-    <a-entity class="clickable" position="0 0 7.4"
-              viewpoint="player: #player; target: 0 0 7.4; label: South edge"></a-entity>
-    <a-entity class="clickable" position="-11 0 -6"
-              viewpoint="player: #player; target: -11 0 -6; label: West end"></a-entity>
+    <a-entity class="clickable" position="17 0.05 0"
+              viewpoint="player: #player; target: 17 0.05 0; label: Glass tray"></a-entity>
+    <a-entity class="clickable" position="10 0.05 6.5"
+              viewpoint="player: #player; target: 10 0.05 6.5; label: Middle terrace"></a-entity>
+    <a-entity class="clickable" position="-7 4.05 0"
+              viewpoint="player: #player; target: -7 4.05 0; label: The Peak"></a-entity>
 
     <!-- ===================== PLAYER =====================
          Desktop: click-drag to look, WASD to move, Shift to move faster,
@@ -106,8 +106,8 @@
          the spot. The camera keeps an identity rotation and is simply offset
          back along the pivot, so both views share one heading and switching
          between them cannot desync movement. -->
-    <a-entity id="player" position="0 0 -6.5"
-              character-controller="avatar: #you; camera: #cam; navmesh: #navmesh"
+    <a-entity id="player" position="10 0.05 0"
+              character-controller="avatar: #you; camera: #cam; navmesh: #navmesh; respawn: 10 0.05 0"
               view-switch="camera: #cam; button: #view-toggle"
               fall-fade="overlay: #fade"
               touch-controls="player: #player; stick: #stick; knob: #knob; jump: #btn-jump">
