@@ -9,10 +9,12 @@
        Never point this at /releases/latest/. See CLAUDE.md §2 before bumping. -->
   <script src="https://aframe.io/releases/1.8.0/aframe.min.js"></script>
   <!-- Components live in /js — no inline JS in this file (CLAUDE.md, Conventions). -->
-  <script src="js/view-switch.js"></script>
   <script src="js/character-controller.js"></script>
+  <script src="js/third-person-camera.js"></script>
+  <script src="js/view-switch.js"></script>
+  <link rel="stylesheet" href="css/overlay.css" />
 </head>
-<body style="margin:0;">
+<body>
   <a-scene renderer="colorManagement: true; antialias: true"
            fog="type: linear; color: #cdd9e5; near: 45; far: 130">
 
@@ -30,16 +32,17 @@
 
     <!-- ===================== DECK (blocky placeholder, rough real scale) =====================
          Phase 3 replaces this with a Blender-modeled glTF of the real deck. -->
-    <a-plane class="deck" rotation="-90 0 0" width="30" height="30" color="#2f2f33"></a-plane>
+    <a-plane class="deck collider" rotation="-90 0 0" width="30" height="30" color="#2f2f33"></a-plane>
 
-    <!-- Parapet -->
-    <a-box position="0 0.55 -15" width="30"  height="1.1" depth="0.4" color="#17181b"></a-box>
-    <a-box position="0 0.55 15"  width="30"  height="1.1" depth="0.4" color="#17181b"></a-box>
-    <a-box position="-15 0.55 0" width="0.4" height="1.1" depth="30"  color="#17181b"></a-box>
-    <a-box position="15 0.55 0"  width="0.4" height="1.1" depth="30"  color="#17181b"></a-box>
+    <!-- Parapet. class="collider" is what the third-person camera raycasts
+         against so it cannot end up outside the building. -->
+    <a-box class="collider" position="0 0.55 -15" width="30"  height="1.1" depth="0.4" color="#17181b"></a-box>
+    <a-box class="collider" position="0 0.55 15"  width="30"  height="1.1" depth="0.4" color="#17181b"></a-box>
+    <a-box class="collider" position="-15 0.55 0" width="0.4" height="1.1" depth="30"  color="#17181b"></a-box>
+    <a-box class="collider" position="15 0.55 0"  width="0.4" height="1.1" depth="30"  color="#17181b"></a-box>
 
     <!-- Central lift core / spire base placeholder -->
-    <a-box position="0 3 0" width="6" height="6" depth="6" color="#3a3d42"></a-box>
+    <a-box class="collider" position="0 3 0" width="6" height="6" depth="6" color="#3a3d42"></a-box>
 
     <!-- Glass SkyWalk tray -->
     <a-plane class="deck" position="0 0.02 -16.5" rotation="-90 0 0" width="5" height="4"
@@ -61,16 +64,36 @@
     <a-entity id="navmesh" gltf-model="#navmesh-model"></a-entity>
 
     <!-- ===================== PLAYER =====================
-         Desktop: click-drag to look, WASD to move, Shift to move faster.
-         Press V to preview the FPS/TPS toggle.
-         character-controller owns the rig position and the avatar's yaw; the
-         camera only supplies the heading that WASD is relative to. -->
-    <a-entity id="player" view-switch position="0 0 6"
-              character-controller="avatar: #you; camera: #cam; navmesh: #navmesh">
-      <a-camera id="cam" position="0 1.6 0" wasd-controls="enabled: false"></a-camera>
-      <!-- "You" — rigged Mixamo avatar, yawed to face travel by the controller. -->
+         Desktop: click-drag to look, WASD to move, Shift to move faster,
+         V to switch between first and third person.
+
+         character-controller owns the rig position and the avatar's yaw.
+         look-controls lives on the PIVOT, not the camera — that is what makes
+         the third-person camera orbit the avatar's head instead of turning on
+         the spot. The camera keeps an identity rotation and is simply offset
+         back along the pivot, so both views share one heading and switching
+         between them cannot desync movement. -->
+    <a-entity id="player" position="0 0 6"
+              character-controller="avatar: #you; camera: #cam; navmesh: #navmesh"
+              view-switch="camera: #cam; button: #view-toggle">
+
+      <a-entity id="pivot" position="0 1.6 0"
+                look-controls="pointerLockEnabled: false; magicWindowTrackingEnabled: false">
+        <a-entity id="cam" camera="active: true"
+                  third-person-camera="pivot: #pivot; avatar: #you; distance: 3.2; height: 0.65"></a-entity>
+      </a-entity>
+
+      <!-- "You" — rigged Mixamo avatar, yawed to face travel by the controller.
+           Visibility is driven by the camera's actual distance, not the mode. -->
       <a-entity id="you" visible="false" gltf-model="#avatar-model"></a-entity>
     </a-entity>
   </a-scene>
+
+  <div id="hint">
+    <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> walk ·
+    <kbd>Shift</kbd> faster · drag to look
+  </div>
+
+  <button id="view-toggle" type="button" aria-pressed="false">First-person</button>
 </body>
 </html>

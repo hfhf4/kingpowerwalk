@@ -7,9 +7,10 @@ between first-person and third-person views.
 Static HTML5 site. No build step. Runs in a desktop browser now; immersive VR on a Meta
 Quest comes later (see *Roadmap*).
 
-**Status: Phase 1 — avatar + controller.** A rigged avatar walks the blocky placeholder
-deck, animated by movement and constrained to a navmesh. The deck itself is still a
-stand-in; Phase 3 replaces it.
+**Status: Phase 2 — FPS/TPS views.** A rigged avatar walks the blocky placeholder deck,
+animated by movement and constrained to a navmesh, with a working first/third-person
+toggle and an orbit-follow camera. The deck itself is still a stand-in; Phase 3
+replaces it.
 
 ---
 
@@ -47,8 +48,10 @@ an angle slides you along it.
 There is no separate run clip. Holding `Shift` moves faster and plays the walk cycle
 proportionally faster to match, so the feet stay planted rather than skating.
 
-The `V` toggle is still the Phase 0 stub — a fixed behind-and-above camera offset.
-Phase 2 builds the real orbit-follow camera.
+`V` (or the on-screen button) switches between first and third person. In third person
+the camera orbits the avatar's head — drag to swing it around her — and pulls in when
+something solid gets between the two, so it never ends up inside the lift core. Your
+choice is remembered between visits.
 
 ## Layout
 
@@ -56,9 +59,12 @@ Phase 2 builds the real orbit-follow camera.
 index.html          entry point — markup only, no inline JS
 CLAUDE.md           working agreement: the non-negotiables
 SPEC.md             the full build spec
+/css
+  └── overlay.css               controls hint + view-toggle button
 /js
   ├── character-controller.js   movement, animation blending, navmesh constraint
-  └── view-switch.js            FPS/TPS toggle stub (rebuilt properly in Phase 2)
+  ├── third-person-camera.js    orbit-follow camera + collision
+  └── view-switch.js            FPS/TPS toggle: input, mode, persistence
 /assets
   ├── /models
   │     └── avatar.glb   rigged avatar, Idle + Walk clips  (deck.glb, skyline.glb later)
@@ -81,6 +87,23 @@ Animation is driven by `THREE.AnimationMixer` directly rather than `aframe-extra
 weights, which the mixer gives us and a clip-switching component does not — and it
 avoids a second pinned CDN dependency. `aframe-extras` still comes in at Phase 6 for
 `movement-controls`, alongside `aframe-blink-controls` for VR teleport, each pinned.
+
+### Camera rig
+
+`look-controls` sits on a **pivot** entity at head height, not on the camera. The camera
+is a child of that pivot, offset back and up along it. Because the pivot rotates and the
+camera does not, the camera swings *around* the avatar rather than turning on the spot —
+which is what makes third person an orbit rather than a shove backwards.
+
+First person is the same rig with the offset collapsed to zero, so switching views is an
+animated change of one offset. Both views share a single heading, which is why switching
+can't desync movement: `character-controller` reads the camera's world direction either
+way, and never has to know which view is active.
+
+Camera collision casts a ray from the pivot out to where the camera wants to be, against
+anything tagged `.collider`, and pulls the camera in short of the first hit. The parapet
+is only 1.1 m tall and the camera orbits at roughly 2.25 m, so it clears the wall and
+hangs out over the edge — correct for a rooftop. The lift core is what actually blocks.
 
 ### Asset pipeline
 
@@ -116,7 +139,7 @@ the finished experience, tested on the headset.
 
 - [x] **Phase 0** — Scaffold & deploy. Blocky deck, walkable with WASD + mouse.
 - [x] **Phase 1** — Rigged avatar + character controller, idle↔walk blend, navmesh-constrained.
-- [ ] **Phase 2** — Proper FPS/TPS toggle with orbit-follow camera and camera collision.
+- [x] **Phase 2** — FPS/TPS toggle with orbit-follow camera and camera collision.
 - [ ] **Phase 3** — Accurate deck geometry: glass tray, pixel parapet, spire, rooftop bar.
 - [ ] **Phase 4** — Skyline & atmosphere: OSM-extruded Bangkok, haze, 314 m altitude read.
 - [ ] **Phase 5** — Polish: ambient audio, signage, viewpoint hotspots, UI overlay.
