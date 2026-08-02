@@ -43,7 +43,15 @@ AFRAME.registerComponent('character-controller', {
     blendRate:        { type: 'number', default: 9 },
     idleClip:         { type: 'string', default: 'Idle' },
     walkClip:         { type: 'string', default: 'Walk' },
-    enabled:          { type: 'boolean', default: true }
+    enabled:          { type: 'boolean', default: true },
+
+    // --- jumping and falling (Phase 5) ---
+    gravity:          { type: 'number', default: -22 },
+    jumpSpeed:        { type: 'number', default: 5.4 },
+    // Below this the fall is unrecoverable; the screen fades and we respawn.
+    // Street level is -314, so this fires just before impact.
+    fallResetY:       { type: 'number', default: -300 },
+    respawn:          { type: 'vec3', default: { x: 0, y: 0, z: -6.5 } }
   },
 
   init: function () {
@@ -56,6 +64,13 @@ AFRAME.registerComponent('character-controller', {
     this.walkWeight = 0;
     // Start facing away from the default third-person camera, which sits at +Z.
     this.yaw = Math.PI;
+
+    // Vertical state. `grounded` gates both jumping and the navmesh constraint:
+    // while airborne the player is deliberately NOT held to the navmesh, which
+    // is what lets you clear the parapet and fall off the building.
+    this.vy = 0;
+    this.grounded = true;
+    this.falling = false;
 
     // Scratch objects — reused every frame so tick allocates nothing.
     this.forward = new THREE.Vector3();
@@ -131,9 +146,38 @@ AFRAME.registerComponent('character-controller', {
     var t = evt.target;
     if (t && (t.isContentEditable || t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) { return; }
     this.keys[evt.code] = true;
+    // Edge-triggered: holding space must not pogo.
+    if (evt.code === 'Space' && !evt.repeat) {
+      evt.preventDefault();
+      this.jump();
+    }
   },
 
   onKeyUp: function (evt) { this.keys[evt.code] = false; },
+
+  /** Height of the navmesh under (x, z), or null when there is nothing there. */
+  groundHeightAt: function (x, z) {
+    if (!this.navMeshObject) { return 0; }
+    this.rayOrigin.set(x, 40, z);
+    this.raycaster.set(this.rayOrigin, this.DOWN);
+    var hits = this.raycaster.intersectObject(this.navMeshObject, false);
+    return hits.length ? hits[0].point.y : null;
+  },
+
+  jump: function () {
+    if (!this.grounded) { return; }
+    this.vy = this.data.jumpSpeed;
+    this.grounded = false;
+    this.el.emit('player-jumped', null, false);
+  },
+
+  respawnPlayer: function () {
+    var r = this.data.respawn;
+    this.el.object3D.position.set(r.x, r.y, r.z);
+    this.vy = 0;
+    this.grounded = true;
+    this.falling = false;
+  },
 
   /** Drop every key when the window loses focus, or they latch down. */
   onBlur: function () { this.keys = {}; },
@@ -150,6 +194,11 @@ AFRAME.registerComponent('character-controller', {
     var f = (k.KeyW || k.ArrowUp ? 1 : 0) - (k.KeyS || k.ArrowDown ? 1 : 0);
     var r = (k.KeyD || k.ArrowRight ? 1 : 0) - (k.KeyA || k.ArrowLeft ? 1 : 0);
     var sprinting = !!(k.ShiftLeft || k.ShiftRight);
+
+    // Touch controls (Phase 5) feed the same pipeline as the keys.
+    if (this.touch) { f += this.touch.f; r += this.touch.r; }
+    f = Math.max(-1, Math.min(1, f));
+    r = Math.max(-1, Math.min(1, r));
 
     var speed = 0;
 
@@ -175,14 +224,61 @@ AFRAME.registerComponent('character-controller', {
         if (this.move.lengthSq() > 1e-6) {
           this.move.normalize();
           speed = this.data.walkSpeed * (sprinting ? this.data.sprintMultiplier : 1);
-          this.applyMove(this.move, speed * dt);
+          if (this.grounded) {
+            this.applyMove(this.move, speed * dt);
+          } else {
+            // Airborne: keep your momentum and go over the edge if that is
+            // where you aimed. The navmesh only holds you while your feet are
+            // on it.
+            var pos = this.el.object3D.position;
+            pos.x += this.move.x * speed * dt;
+            pos.z += this.move.z * speed * dt;
+          }
           this.yaw = Math.atan2(this.move.x, this.move.z);
         }
       }
     }
 
+    this.updateVertical(dt);
     this.updateFacing(dt);
     this.updateAnimation(speed, dt);
+  },
+
+  /**
+   * Gravity, ground contact and the long drop.
+   *
+   * Ground is probed against the navmesh rather than the deck mesh: the navmesh
+   * is already inset from the edge, so stepping past it means there is nothing
+   * under you, which is exactly the condition for falling.
+   */
+  updateVertical: function (dt) {
+    var pos = this.el.object3D.position;
+    var groundY = this.groundHeightAt(pos.x, pos.z);
+
+    if (this.grounded && groundY !== null) {
+      pos.y = groundY;
+      this.vy = 0;
+    } else {
+      this.vy += this.data.gravity * dt;
+      pos.y += this.vy * dt;
+
+      if (groundY !== null && this.vy <= 0 && pos.y <= groundY) {
+        pos.y = groundY;
+        this.vy = 0;
+        if (!this.grounded) { this.el.emit('player-landed', null, false); }
+        this.grounded = true;
+      } else {
+        this.grounded = false;
+      }
+    }
+
+    // Walked off the edge rather than jumped: start falling from rest.
+    if (this.grounded && groundY === null) { this.grounded = false; }
+
+    if (!this.falling && pos.y < this.data.fallResetY) {
+      this.falling = true;
+      this.el.emit('player-fell', null, false);
+    }
   },
 
   /**
@@ -225,6 +321,19 @@ AFRAME.registerComponent('character-controller', {
 
   updateAnimation: function (speed, dt) {
     if (!this.mixer) { return; }
+
+    // No Jump clip ships in avatar.glb — only Idle and Walk — so the hop is
+    // faked by holding the walk cycle at a mid-stride frame, legs apart, and
+    // freezing playback. It reads as a leap without inventing a clip.
+    if (!this.grounded && this.walkAction) {
+      this.walkWeight += (1 - this.walkWeight) * Math.min(1, 14 * dt);
+      if (this.idleAction) { this.idleAction.setEffectiveWeight(1 - this.walkWeight); }
+      this.walkAction.setEffectiveWeight(this.walkWeight);
+      this.walkAction.timeScale = 0;
+      this.walkAction.time = 0.34;
+      this.mixer.update(dt);
+      return;
+    }
 
     var target = speed > 0 ? 1 : 0;
     this.walkWeight += (target - this.walkWeight) * Math.min(1, this.data.blendRate * dt);

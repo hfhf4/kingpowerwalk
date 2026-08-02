@@ -13,10 +13,15 @@
   <script src="js/character-controller.js"></script>
   <script src="js/third-person-camera.js"></script>
   <script src="js/view-switch.js"></script>
+  <script src="js/photo-skybox.js"></script>
+  <script src="js/ambient-audio.js"></script>
+  <script src="js/deck-features.js"></script>
+  <script src="js/touch-controls.js"></script>
   <link rel="stylesheet" href="css/overlay.css" />
 </head>
 <body>
   <a-scene renderer="colorManagement: true; antialias: true"
+           ambient-audio="button: #btn-sound; volume: 0.5"
            fog="type: linear; color: #cdd9e5; near: 350; far: 4600">
 
     <a-assets>
@@ -39,6 +44,12 @@
     <!-- Procedural gradient rather than a flat dome: the pale horizon band is
          what makes 314 m read as height. Fog uses the same horizon colour so
          distant geometry dissolves into it instead of ending at a hard edge. -->
+    <!-- Real 360 photo backdrop. Drops in behind everything once the panorama
+         is in the repo: set src to assets/panoramas/skyline.jpg and turn `yaw`
+         until the skyline lines up with the deck. Empty src = inactive, and the
+         gradient sky below shows through. -->
+    <a-entity id="panorama" photo-skybox="src: ; yaw: 0; radius: 9000"></a-entity>
+
     <a-sky radius="12000"
            material="shader: gradient-sky; topColor: #3f7cad; horizonColor: #cdd9e5; exponent: 0.8; horizonBias: -0.3"></a-sky>
 
@@ -68,6 +79,23 @@
 
     <a-entity id="navmesh" gltf-model="#navmesh-model"></a-entity>
 
+    <!-- ===================== DECK FURNITURE ===================== -->
+    <a-entity id="sign" position="0 1.55 -8.1">
+      <a-entity canvas-sign="title: Mahanakhon SkyWalk; subtitle: 314 m"></a-entity>
+      <a-box position="-1.5 -0.62 0" width="0.08" height="1.2" depth="0.08"
+             material="color: #2a2f36; roughness: 0.7"></a-box>
+      <a-box position="1.5 -0.62 0" width="0.08" height="1.2" depth="0.08"
+             material="color: #2a2f36; roughness: 0.7"></a-box>
+    </a-entity>
+
+    <!-- Viewpoints. Targets are on the navmesh; check against it if you move them. -->
+    <a-entity class="clickable" position="17 0 -5"
+              viewpoint="player: #player; target: 17 0 -5; label: East end"></a-entity>
+    <a-entity class="clickable" position="0 0 7.4"
+              viewpoint="player: #player; target: 0 0 7.4; label: South edge"></a-entity>
+    <a-entity class="clickable" position="-11 0 -6"
+              viewpoint="player: #player; target: -11 0 -6; label: West end"></a-entity>
+
     <!-- ===================== PLAYER =====================
          Desktop: click-drag to look, WASD to move, Shift to move faster,
          V to switch between first and third person.
@@ -80,7 +108,9 @@
          between them cannot desync movement. -->
     <a-entity id="player" position="0 0 -6.5"
               character-controller="avatar: #you; camera: #cam; navmesh: #navmesh"
-              view-switch="camera: #cam; button: #view-toggle">
+              view-switch="camera: #cam; button: #view-toggle"
+              fall-fade="overlay: #fade"
+              touch-controls="player: #player; stick: #stick; knob: #knob; jump: #btn-jump">
 
       <a-entity id="pivot" position="0 1.6 0"
                 look-controls="pointerLockEnabled: false; magicWindowTrackingEnabled: false">
@@ -88,7 +118,9 @@
              pulled off A-Frame's 0.005 default to keep depth precision usable
              across that range. -->
         <a-entity id="cam" camera="active: true; near: 0.1; far: 20000"
-                  third-person-camera="pivot: #pivot; avatar: #you; distance: 3.2; height: 0.65"></a-entity>
+                  third-person-camera="pivot: #pivot; avatar: #you; distance: 3.2; height: 0.65"
+                  cursor="rayOrigin: mouse; fuse: false"
+                  raycaster="objects: .clickable; far: 60"></a-entity>
       </a-entity>
 
       <!-- "You" — rigged Mixamo avatar, yawed to face travel by the controller.
@@ -99,7 +131,8 @@
 
   <div id="hint">
     <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> walk ·
-    <kbd>Shift</kbd> faster · drag to look
+    <kbd>Shift</kbd> faster · <kbd>Space</kbd> jump ·
+    drag to look · <kbd>V</kbd> view · click a ring to travel
   </div>
 
   <!-- ODbL requires attribution wherever the data is shown, so this is on
@@ -111,5 +144,14 @@
   </div>
 
   <button id="view-toggle" type="button" aria-pressed="false">First-person</button>
+  <button id="btn-sound" type="button" aria-pressed="false">Sound on</button>
+
+  <!-- Touch controls. Hidden by default; touch-controls reveals them only on
+       devices that actually report touch support. -->
+  <div id="stick" aria-hidden="true"><div id="knob"></div></div>
+  <button id="btn-jump" type="button" aria-hidden="true">Jump</button>
+
+  <!-- Fade for the 314 m drop. Covers everything including the overlay. -->
+  <div id="fade" aria-hidden="true"></div>
 </body>
 </html>
