@@ -1,7 +1,7 @@
 /* global AFRAME, THREE */
 
 /**
- * character-controller â€” desktop locomotion for the deck (SPEC Â§10, Phase 1).
+ * character-controller — desktop locomotion for the deck (SPEC §10, Phase 1).
  *
  * Attach to the player rig. It owns the rig's position and the avatar's yaw,
  * and drives the avatar's animation from how fast it is actually moving.
@@ -10,7 +10,7 @@
  *     turning the mouse turns which way W walks.
  *   - Idle <-> Walk blended by speed rather than switched, so easing off the
  *     key eases out of the walk cycle.
- *   - Hold Shift to move faster. There is no separate run clip â€” the walk clip
+ *   - Hold Shift to move faster. There is no separate run clip — the walk clip
  *     is played proportionally faster, which is why `clipStrideSpeed` matters
  *     (see below).
  *   - The avatar yaws to face travel direction, smoothed so it banks around
@@ -21,7 +21,7 @@
  *     instead of sticking to it.
  *
  * On `clipStrideSpeed`: the source Walk.fbx was exported from Mixamo *with*
- * root motion â€” the hips travelled 1.607 m over the 1.25 s clip. That motion
+ * root motion — the hips travelled 1.607 m over the 1.25 s clip. That motion
  * was stripped when assets/models/avatar.glb was built (it would otherwise
  * fight this component for control of position), but the ratio it implies,
  * 1.29 m/s, is the speed the animation was authored to walk at. Playing the
@@ -75,7 +75,7 @@ AFRAME.registerComponent('character-controller', {
     this.grounded = true;
     this.falling = false;
 
-    // Scratch objects â€” reused every frame so tick allocates nothing.
+    // Scratch objects — reused every frame so tick allocates nothing.
     this.forward = new THREE.Vector3();
     this.right = new THREE.Vector3();
     this.move = new THREE.Vector3();
@@ -137,7 +137,7 @@ AFRAME.registerComponent('character-controller', {
     var found = null;
     model.traverse(function (o) {
       if (!found && o.isMesh) { found = o; }
-      // Keep the object itself visible so raycasts still hit it â€” only the
+      // Keep the object itself visible so raycasts still hit it — only the
       // material is switched off. THREE skips invisible *objects* when casting.
       if (o.isMesh && o.material) { o.material.visible = false; }
     });
@@ -163,6 +163,8 @@ AFRAME.registerComponent('character-controller', {
     if (!this.navMeshObject) { return 0; }
     this.rayOrigin.set(x, 40, z);
     this.raycaster.set(this.rayOrigin, this.DOWN);
+    this.raycaster.near = 0;
+    this.raycaster.far = Infinity;
     var hits = this.raycaster.intersectObject(this.navMeshObject, false);
     return hits.length ? hits[0].point.y : null;
   },
@@ -210,7 +212,7 @@ AFRAME.registerComponent('character-controller', {
       //
       // Object3D.getWorldDirection() reports the +Z axis, but a camera looks
       // down -Z, so this has to be negated. THREE.Camera overrides the method
-      // to account for that â€” this is the A-Frame entity's Object3D, not the
+      // to account for that — this is the A-Frame entity's Object3D, not the
       // camera itself, so it uses the base implementation and does not.
       this.data.camera.object3D.getWorldDirection(this.forward);
       this.forward.negate();
@@ -337,6 +339,8 @@ AFRAME.registerComponent('character-controller', {
     if (!this.navMeshObject) { return true; }
     this.rayOrigin.set(x, 5, z);
     this.raycaster.set(this.rayOrigin, this.DOWN);
+    this.raycaster.near = 0;
+    this.raycaster.far = Infinity;
     return this.raycaster.intersectObject(this.navMeshObject, false).length > 0;
   },
 
@@ -353,7 +357,7 @@ AFRAME.registerComponent('character-controller', {
   updateAnimation: function (speed, dt) {
     if (!this.mixer) { return; }
 
-    // No Jump clip ships in avatar.glb â€” only Idle and Walk â€” so the hop is
+    // No Jump clip ships in avatar.glb — only Idle and Walk — so the hop is
     // faked by holding the walk cycle at a mid-stride frame, legs apart, and
     // freezing playback. It reads as a leap without inventing a clip.
     if (!this.grounded && this.walkAction) {
@@ -383,4 +387,3 @@ AFRAME.registerComponent('character-controller', {
     this.mixer.update(dt);
   }
 });
-

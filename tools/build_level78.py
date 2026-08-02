@@ -59,39 +59,6 @@ def width_at_x(x):
     s=CFG['stairs']; t=(x-s['rearX'])/(s['frontX']-s['rearX'])
     return s['topWidth']+(s['bottomWidth']-s['topWidth'])*t
 
-def cut_tower_roof_for_glass():
-    """Remove only upward roof triangles below the glass tray, preserving the tower shell."""
-    path=ROOT/'assets/models/tower.glb'; data=path.read_bytes(); off=12; doc=None; binary=None
-    while off<len(data):
-        ln,typ=struct.unpack_from('<II',data,off); off+=8; chunk=data[off:off+ln]; off+=ln
-        if typ==0x4E4F534A: doc=json.loads(chunk.decode().rstrip('\0 '))
-        elif typ==0x004E4942: binary=bytearray(chunk)
-    prim=doc['meshes'][0]['primitives'][0]
-    def read_accessor(ai,fmt,n):
-        a=doc['accessors'][ai]; bv=doc['bufferViews'][a['bufferView']]; start=bv.get('byteOffset',0)+a.get('byteOffset',0); stride=bv.get('byteStride',struct.calcsize(fmt))
-        return [struct.unpack_from(fmt,binary,start+i*stride)[:n] for i in range(a['count'])]
-    pos=read_accessor(prim['attributes']['POSITION'],'<fff',3)
-    if 'indices' in prim:
-        ia=doc['accessors'][prim['indices']]; comp=ia['componentType']; fmt={5123:'<H',5125:'<I'}[comp]
-        inds=[v[0] for v in read_accessor(prim['indices'],fmt,1)]
-    else:
-        ia={'componentType':5125,'type':'SCALAR'}; fmt='<I'; inds=list(range(len(pos)))
-    halfD=CFG['deck']['depth']/2; gd=CFG['glassTray']['depth']; x0=halfD-gd-.05; x1=halfD+.05
-    kept=[]
-    for i in range(0,len(inds),3):
-        tri=inds[i:i+3]; pts=[pos[j] for j in tri]; cx=sum(p[0] for p in pts)/3; cy=sum(p[1] for p in pts)/3
-        roof=abs(cy)<.08 and all(abs(p[1])<.08 for p in pts)
-        if not (roof and x0<=cx<=x1): kept+=tri
-    while len(binary)%4: binary.append(0)
-    bo=len(binary)
-    for i in kept: binary+=struct.pack(fmt,i)
-    doc['bufferViews'].append({'buffer':0,'byteOffset':bo,'byteLength':len(kept)*struct.calcsize(fmt),'target':34963})
-    ia2=dict(ia); ia2['bufferView']=len(doc['bufferViews'])-1; ia2['byteOffset']=0; ia2['count']=len(kept); ia2['min']=[min(kept)]; ia2['max']=[max(kept)]
-    doc['accessors'].append(ia2); prim['indices']=len(doc['accessors'])-1; doc['buffers'][0]['byteLength']=len(binary)
-    js=json.dumps(doc,separators=(',',':')).encode(); js+=b' '*((4-len(js)%4)%4); binary+=b'\0'*((4-len(binary)%4)%4)
-    out=bytearray(b'glTF')+struct.pack('<II',2,12+8+len(js)+8+len(binary))+struct.pack('<II',len(js),0x4E4F534A)+js+struct.pack('<II',len(binary),0x004E4942)+binary
-    path.write_bytes(out)
-
 def build_deck():
     d=CFG['deck']; halfD=d['depth']/2; halfW=d['width']/2; gy=d['elevation']; glass=CFG['glassTray']; s=CFG['stairs']; up=CFG['upperViewingArea']
     opaque=[]; transparent=[]
@@ -105,6 +72,8 @@ def build_deck():
         opaque.append(box(x0,gy,-w/2,x1,y1,w/2))
     # The Peak is a thin slab at +4 m, not a full-height block protruding beside the stairs.
     opaque.append(box(up['rearX'],up['elevation']-.22,-up['width']/2,up['frontX'],up['elevation'],up['width']/2))
+    # The round glazed elevator is real; only the unrelated centre cylinder was a bug.
+    e=CFG['elevator']; opaque.append(cylinder(e['centre'][0],e['centre'][1],e['diameter']/2,gy,e['height']))
     # Simplified glass rail: thin blocks around the rectangular public envelope.
     h=CFG['railings']['height']; t=.05
     transparent += [box(-halfD,gy,-halfW,-halfD+t,h,-halfW+t),box(-halfD,gy,halfW-t,halfD,h,halfW),
@@ -114,13 +83,13 @@ def build_deck():
     glb(ROOT/'assets/models/deck.glb',[(*merge(opaque),0),(*merge(transparent),1)],mats)
 
 def build_navmesh():
-    d=CFG['deck']; halfD=d['depth']/2; halfW=d['width']/2; gy=.05; s=CFG['stairs']; up=CFG['upperViewingArea']; inset=CFG['railings']['navmeshInset']
+    d=CFG['deck']; halfD=d['depth']/2; halfW=d['width']/2; gy=.05; s=CFG['stairs']; up=CFG['upperViewingArea']; e=CFG['elevator']; inset=CFG['railings']['navmeshInset']
     cells=[]; step=.5
     x=-halfD+inset+.25
     while x<halfD-inset:
         z=-halfW+inset+.25
         while z<halfW-inset:
-            blocked=(up['rearX']-.3<x<s['frontX']+.3 and abs(z)<up['width']/2+.3)
+            blocked=(math.hypot(x-e['centre'][0],z-e['centre'][1])<e['diameter']/2+.45) or (up['rearX']-.3<x<s['rearX']+.3 and abs(z)<up['width']/2+.3)
             if not blocked: cells.append(quad((x-step/2,gy,z-step/2),(x+step/2,gy,z-step/2),(x+step/2,gy,z+step/2),(x-step/2,gy,z+step/2)))
             z+=step
         x+=step
@@ -133,5 +102,5 @@ def build_navmesh():
     glb(ROOT/'assets/nav/navmesh.glb',[(*merge(cells),0)],mats)
 
 if __name__=='__main__':
-    cut_tower_roof_for_glass(); build_deck(); build_navmesh()
-    print('Generated tower opening, deck.glb and navmesh.glb')
+    build_deck(); build_navmesh()
+    print('Generated deck.glb and navmesh.glb; tower.glb is preserved unchanged')
