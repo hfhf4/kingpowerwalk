@@ -9,6 +9,7 @@
        Never point this at /releases/latest/. See CLAUDE.md §2 before bumping. -->
   <script src="https://aframe.io/releases/1.8.0/aframe.min.js"></script>
   <!-- Components live in /js — no inline JS in this file (CLAUDE.md, Conventions). -->
+  <script src="js/gradient-sky.js"></script>
   <script src="js/character-controller.js"></script>
   <script src="js/third-person-camera.js"></script>
   <script src="js/view-switch.js"></script>
@@ -32,7 +33,10 @@
       <a-asset-item id="navmesh-model" src="assets/nav/navmesh.glb"></a-asset-item>
     </a-assets>
 
-    <a-sky color="#9fc2e0"></a-sky>
+    <!-- Procedural gradient rather than a flat dome: the pale horizon band is
+         what makes 314 m read as height. Fog uses the same horizon colour so
+         distant geometry dissolves into it instead of ending at a hard edge. -->
+    <a-sky material="shader: gradient-sky; topColor: #3f7cad; horizonColor: #cdd9e5; exponent: 0.8; horizonY: -150"></a-sky>
 
     <!-- ===================== THE TOWER =====================
          King Power MahaNakhon, from the SketchUp STL. 4562 triangles, one flat
