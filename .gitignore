@@ -59,3 +59,7 @@ desktop.ini
 .env.local
 /tmp/
 /scratch/
+
+# Source meshes: convert at authoring time, commit only the glTF result.
+*.stl
+*.STL
