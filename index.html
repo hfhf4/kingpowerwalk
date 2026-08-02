@@ -10,10 +10,22 @@
   <script src="https://aframe.io/releases/1.8.0/aframe.min.js"></script>
   <!-- Components live in /js — no inline JS in this file (CLAUDE.md, Conventions). -->
   <script src="js/view-switch.js"></script>
+  <script src="js/character-controller.js"></script>
 </head>
 <body style="margin:0;">
   <a-scene renderer="colorManagement: true; antialias: true"
            fog="type: linear; color: #cdd9e5; near: 45; far: 130">
+
+    <a-assets>
+      <!-- Kana by "ddd" (sketchfab.com/endonoriko), CC-BY-4.0. Mixamo rig.
+           Idle = the Tablet clip; Walk = a Mixamo walk cycle with its root
+           motion stripped. See README for the conversion pipeline. -->
+      <a-asset-item id="avatar-model" src="assets/models/avatar.glb"></a-asset-item>
+      <!-- Walkable surface of the deck. Never rendered — the controller only
+           casts rays at it. -->
+      <a-asset-item id="navmesh-model" src="assets/nav/navmesh.glb"></a-asset-item>
+    </a-assets>
+
     <a-sky color="#9fc2e0"></a-sky>
 
     <!-- ===================== DECK (blocky placeholder, rough real scale) =====================
@@ -43,18 +55,21 @@
     <a-entity light="type: hemisphere; intensity: 0.9; color: #ffffff; groundColor: #444"></a-entity>
     <a-entity light="type: directional; intensity: 0.7" position="1 4 2"></a-entity>
 
+    <!-- Navmesh. Kept out of the player rig so it stays in world space; the
+         controller switches its material off but leaves the object visible so
+         raycasts still register. -->
+    <a-entity id="navmesh" gltf-model="#navmesh-model"></a-entity>
+
     <!-- ===================== PLAYER =====================
-         Desktop: click-drag to look, WASD to move. Mobile: gyro. Quest: 6DoF + Enter VR.
+         Desktop: click-drag to look, WASD to move, Shift to move faster.
          Press V to preview the FPS/TPS toggle.
-         wasd on the rig keeps the camera + avatar together (world-axis; Phase 1
-         makes it camera-relative and swaps the box avatar for a rigged Mixamo one). -->
-    <a-entity id="player" view-switch wasd-controls="acceleration: 25; fly: false" position="0 0 6">
+         character-controller owns the rig position and the avatar's yaw; the
+         camera only supplies the heading that WASD is relative to. -->
+    <a-entity id="player" view-switch position="0 0 6"
+              character-controller="avatar: #you; camera: #cam; navmesh: #navmesh">
       <a-camera id="cam" position="0 1.6 0" wasd-controls="enabled: false"></a-camera>
-      <!-- Placeholder avatar ("you") — Phase 1 replaces with a rigged Mixamo glTF -->
-      <a-entity id="you" visible="false">
-        <a-cylinder position="0 0.9 0" radius="0.28" height="1.2" color="#c94f4f"></a-cylinder>
-        <a-sphere   position="0 1.7 0" radius="0.22" color="#e0a37a"></a-sphere>
-      </a-entity>
+      <!-- "You" — rigged Mixamo avatar, yawed to face travel by the controller. -->
+      <a-entity id="you" visible="false" gltf-model="#avatar-model"></a-entity>
     </a-entity>
   </a-scene>
 </body>
