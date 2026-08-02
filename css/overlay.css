@@ -1,0 +1,94 @@
+/* 2D chrome over the A-Frame canvas. Kept out of index.html so the entry point
+   stays markup only. */
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+  background: #0f1012;
+}
+
+body {
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+               "Helvetica Neue", Arial, sans-serif;
+}
+
+/* --- controls hint, bottom left ----------------------------------------- */
+
+#hint {
+  position: fixed;
+  left: 16px;
+  bottom: 16px;
+  z-index: 10;
+  padding: 9px 13px;
+  border-radius: 8px;
+  color: rgba(238, 243, 248, 0.82);
+  background: rgba(12, 16, 21, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  font-size: 12px;
+  line-height: 1.7;
+  pointer-events: none;
+  user-select: none;
+}
+
+kbd {
+  display: inline-block;
+  min-width: 1em;
+  padding: 1px 5px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-bottom-width: 2px;
+  background: rgba(255, 255, 255, 0.1);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* --- view toggle, bottom right ------------------------------------------ */
+
+#view-toggle {
+  position: fixed;
+  right: 16px;
+  /* Stacked above A-Frame's VR/fullscreen button, which owns the corner. */
+  bottom: 78px;
+  z-index: 10;
+  min-width: 124px;
+  padding: 10px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(12, 16, 21, 0.62);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  color: #eef3f8;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  user-select: none;
+  transition: background 120ms ease, transform 120ms ease;
+}
+
+#view-toggle::before {
+  content: "V";
+  display: inline-block;
+  margin-right: 8px;
+  padding: 0 5px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.14);
+  font-size: 10px;
+  font-weight: 700;
+  vertical-align: 1px;
+}
+
+#view-toggle:hover { background: rgba(26, 36, 47, 0.8); }
+#view-toggle:active { transform: translateY(1px); }
+#view-toggle:focus-visible { outline: 2px solid #7cc0ee; outline-offset: 2px; }
+
+@media (max-width: 600px) {
+  #hint { left: 10px; bottom: 10px; font-size: 11px; }
+  #view-toggle { right: 10px; bottom: 72px; }
+}
