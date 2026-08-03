@@ -67,3 +67,8 @@ desktop.ini
 # Python bytecode from the asset tools
 __pycache__/
 *.pyc
+
+# Stray screenshots from the headless test harness (it writes to cwd)
+p[0-9]*-*.png
+glass-*.png
+fix-*.png
