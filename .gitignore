@@ -72,3 +72,10 @@ __pycache__/
 p[0-9]*-*.png
 glass-*.png
 fix-*.png
+tray-*.png
+
+# The headless harness itself. `.test.html` is index.html with the A-Frame CDN
+# tag swapped for a local copy, because aframe.io is blocked in the sandbox the
+# agent runs in. Both are generated, neither is part of the site.
+.test.html
+.aframe-test.min.js
