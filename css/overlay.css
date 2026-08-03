@@ -150,46 +150,50 @@ kbd {
 #btn-sound[aria-pressed="false"] { color: rgba(238, 243, 248, 0.5); }
 
 /* --- touch controls ------------------------------------------------------ */
-/* display:none until touch-controls confirms a touch device. */
+/* display:none until touch-controls confirms a touch device, and hidden again
+   while in VR where the controllers take over. */
 
-#stick {
+#dpad {
   display: none;
   position: fixed;
-  left: 22px;
-  bottom: 96px;
+  left: 20px;
+  bottom: 92px;
   z-index: 11;
-  width: 124px;
-  height: 124px;
-  border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  background: rgba(12, 16, 21, 0.38);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  grid-template-columns: repeat(3, 58px);
+  grid-template-rows: repeat(3, 58px);
+  gap: 4px;
   touch-action: none;
+  user-select: none;
 }
 
-#knob {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 52px;
-  height: 52px;
-  margin: 0;
-  border-radius: 50%;
-  background: rgba(238, 243, 248, 0.55);
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  transform: translate(-50%, -50%);
-  pointer-events: none;
+#dpad button {
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(12, 16, 21, 0.5);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  color: rgba(238, 243, 248, 0.85);
+  font-size: 19px;
+  line-height: 1;
+  border-radius: 12px;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
 }
+
+#dpad button.pressed { background: rgba(90, 140, 190, 0.72); color: #fff; }
+
+#dpad [data-dir="up"]    { grid-area: 1 / 2; }
+#dpad [data-dir="left"]  { grid-area: 2 / 1; }
+#dpad [data-dir="right"] { grid-area: 2 / 3; }
+#dpad [data-dir="down"]  { grid-area: 3 / 2; }
 
 #btn-jump {
   display: none;
   position: fixed;
   right: 24px;
-  bottom: 200px;
+  bottom: 196px;
   z-index: 11;
-  width: 84px;
-  height: 84px;
+  width: 86px;
+  height: 86px;
   border-radius: 50%;
   border: 1px solid rgba(255, 255, 255, 0.2);
   background: rgba(12, 16, 21, 0.55);
@@ -201,7 +205,35 @@ kbd {
   font-weight: 600;
   touch-action: none;
   user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
+
+#btn-jump:active { background: rgba(90, 140, 190, 0.72); }
+
+/* --- time-of-day toggle -------------------------------------------------- */
+
+#btn-sky {
+  position: fixed;
+  right: 16px;
+  bottom: 174px;
+  z-index: 10;
+  min-width: 124px;
+  padding: 9px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(12, 16, 21, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  color: rgba(238, 243, 248, 0.9);
+  font: inherit;
+  font-size: 12.5px;
+  cursor: pointer;
+  user-select: none;
+  transition: background 120ms ease;
+}
+
+#btn-sky:hover { background: rgba(26, 36, 47, 0.75); }
+#btn-sky:focus-visible { outline: 2px solid #7cc0ee; outline-offset: 2px; }
 
 /* --- fade for the long drop --------------------------------------------- */
 
@@ -216,5 +248,7 @@ kbd {
 
 @media (max-width: 600px) {
   #btn-sound { right: 10px; bottom: 118px; min-width: 104px; font-size: 11.5px; }
+  #btn-sky { right: 10px; bottom: 162px; min-width: 104px; font-size: 11.5px; }
+  #dpad { left: 12px; bottom: 76px; grid-template-columns: repeat(3, 52px); grid-template-rows: repeat(3, 52px); }
   #hint { max-width: 58vw; }
 }
