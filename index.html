@@ -10,6 +10,8 @@
   <script src="https://aframe.io/releases/1.8.0/aframe.min.js"></script>
   <!-- Components live in /js — no inline JS in this file (CLAUDE.md, Conventions). -->
   <script src="js/gradient-sky.js"></script>
+  <script src="js/sky-time.js"></script>
+  <script src="js/tower-clip.js"></script>
   <script src="js/character-controller.js"></script>
   <script src="js/third-person-camera.js"></script>
   <script src="js/view-switch.js"></script>
@@ -22,6 +24,7 @@
 <body>
   <a-scene renderer="colorManagement: true; antialias: true"
            ambient-audio="button: #btn-sound; volume: 0.5"
+           sky-time="sky: a-sky; sun: #sun; ambient: #ambient; button: #btn-sky"
            fog="type: linear; color: #cdd9e5; near: 350; far: 4600">
 
     <a-assets>
@@ -58,7 +61,9 @@
          facade material. Kept whole so the drop to the street reads from the
          deck edge. class="collider" keeps the third-person camera out of the
          rooftop plant rooms. -->
-    <a-entity id="tower" class="collider" gltf-model="#tower-model"></a-entity>
+    <!-- tower-clip removes the STL roof above deck level: the deck blockout and
+         the model describe the same floor, and the plant rooms punched through it. -->
+    <a-entity id="tower" class="collider" gltf-model="#tower-model" tower-clip="height: 0.02"></a-entity>
     <!-- Simple solid shell used only for airborne player collision. Keeping it
          separate avoids the detailed tower roof blocking the stair approach. -->
     <a-box id="tower-player-shell" class="player-collider" position="0 -157 0"
@@ -79,8 +84,8 @@
              width="14000" height="14000" material="color: #71787c; roughness: 1"></a-plane>
 
     <!-- Lighting -->
-    <a-entity light="type: hemisphere; intensity: 0.9; color: #ffffff; groundColor: #444"></a-entity>
-    <a-entity light="type: directional; intensity: 0.7" position="60 180 90"></a-entity>
+    <a-entity id="ambient" light="type: hemisphere; intensity: 0.9; color: #ffffff; groundColor: #444"></a-entity>
+    <a-entity id="sun" light="type: directional; intensity: 0.7" position="140 288 -240"></a-entity>
 
     <a-entity id="navmesh" gltf-model="#navmesh-model"></a-entity>
 
@@ -115,7 +120,7 @@
               character-controller="avatar: #you; camera: #cam; navmesh: #navmesh; respawn: 10 0.05 0"
               view-switch="camera: #cam; button: #view-toggle"
               fall-fade="overlay: #fade"
-              touch-controls="player: #player; stick: #stick; knob: #knob; jump: #btn-jump">
+              touch-controls="player: #player; pad: #dpad; jump: #btn-jump">
 
       <a-entity id="pivot" position="0 1.6 0"
                 look-controls="pointerLockEnabled: false; magicWindowTrackingEnabled: false">
@@ -150,10 +155,16 @@
 
   <button id="view-toggle" type="button" aria-pressed="false">First-person</button>
   <button id="btn-sound" type="button" aria-pressed="false">Sound on</button>
+  <button id="btn-sky" type="button" aria-label="Time of day">Day</button>
 
   <!-- Touch controls. Hidden by default; touch-controls reveals them only on
        devices that actually report touch support. -->
-  <div id="stick" aria-hidden="true"><div id="knob"></div></div>
+  <div id="dpad" aria-hidden="true">
+    <button type="button" data-dir="up"    aria-label="Forward">▲</button>
+    <button type="button" data-dir="left"  aria-label="Left">◀</button>
+    <button type="button" data-dir="right" aria-label="Right">▶</button>
+    <button type="button" data-dir="down"  aria-label="Back">▼</button>
+  </div>
   <button id="btn-jump" type="button" aria-hidden="true">Jump</button>
 
   <!-- Fade for the 314 m drop. Covers everything including the overlay. -->
