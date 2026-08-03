@@ -62,9 +62,24 @@ def width_at_x(x):
 def build_deck():
     d=CFG['deck']; halfD=d['depth']/2; halfW=d['width']/2; gy=d['elevation']; glass=CFG['glassTray']; s=CFG['stairs']; up=CFG['upperViewingArea']
     opaque=[]; transparent=[]
-    # Main terrace and full-width glass tray are separate visual surfaces.
-    opaque.append(box(-halfD,-0.12,-halfW,halfD-glass['depth'],gy,halfW))
-    transparent.append(box(halfD-glass['depth'],-0.04,-halfW,halfD,gy,halfW))
+    # The terrace runs the full depth of the deck envelope.
+    opaque.append(box(-halfD,-0.12,-halfW,halfD,gy,halfW))
+    # The glass tray is CANTILEVERED past the tower, not inset into the deck.
+    # Inset it sat over solid roof (the slab reaches X=22.98), so looking down
+    # through it showed roof and no amount of transparency could fix that. Out
+    # here there is nothing beneath it, which is what makes the drop real — and
+    # is what the actual SkyWalk does.
+    gx0=glass['innerX']; gx1=glass['outerX']; gw=glass['width']/2
+    transparent.append(box(gx0,-0.04,-gw,gx1,gy,gw))
+    # A bridging slab from the deck edge out to the tray, so there is no gap to
+    # fall through where the terrace ends.
+    if gx0>halfD: opaque.append(box(halfD-0.05,-0.10,-gw,gx0+0.02,gy-0.005,gw))
+    # Lip around the three exposed sides, so the tray reads as a structure
+    # rather than a pane floating in space.
+    lip=0.10
+    opaque += [box(gx1-lip,-0.06,-gw,gx1,gy+0.05,gw),
+               box(gx0,-0.06,-gw,gx1,gy+0.05,-gw+lip),
+               box(gx0,-0.06,gw-lip,gx1,gy+0.05,gw)]
     # Twenty stepped treads rising to +4 m.
     n=s['steps']; dx=(s['frontX']-s['rearX'])/n
     for i in range(n):
@@ -76,8 +91,15 @@ def build_deck():
     e=CFG['elevator']; opaque.append(cylinder(e['centre'][0],e['centre'][1],e['diameter']/2,gy,e['height']))
     # Simplified glass rail: thin blocks around the rectangular public envelope.
     h=CFG['railings']['height']; t=.05
-    transparent += [box(-halfD,gy,-halfW,-halfD+t,h,-halfW+t),box(-halfD,gy,halfW-t,halfD,h,halfW),
-                    box(-halfD,gy,-halfW,halfD,h,-halfW+t),box(halfD-t,gy,-halfW,halfD,h,halfW)]
+    gw=glass['width']/2; gx1=glass['outerX']
+    transparent += [box(-halfD,gy,-halfW,-halfD+t,h,halfW),            # rear
+                    box(-halfD,gy,halfW-t,halfD,h,halfW),              # left
+                    box(-halfD,gy,-halfW,halfD,h,-halfW+t),            # right
+                    # Rails follow the tray out and close its far end, so the
+                    # cantilever is walkable without being a way off the edge.
+                    box(halfD,gy,gw-t,gx1,h,gw),
+                    box(halfD,gy,-gw,gx1,h,-gw+t),
+                    box(gx1-t,gy,-gw,gx1,h,gw)]
     mats=[{'name':'Deck','pbrMetallicRoughness':{'baseColorFactor':[0.65,0.67,0.68,1],'metallicFactor':0,'roughnessFactor':.85}},
           {'name':'Glass','alphaMode':'BLEND','doubleSided':True,'pbrMetallicRoughness':{'baseColorFactor':[.12,.68,.82,.16],'metallicFactor':0,'roughnessFactor':.08}}]
     glb(ROOT/'assets/models/deck.glb',[(*merge(opaque),0),(*merge(transparent),1)],mats)
@@ -98,9 +120,21 @@ def build_navmesh():
         x0=s['frontX']-(i+1)*dx; x1=s['frontX']-i*dx; y=gy+(i+1)*up['elevation']/n; w=width_at_x((x0+x1)/2)-.6
         cells.append(quad((x0,y,-w/2),(x1,y,-w/2),(x1,y,w/2),(x0,y,w/2)))
     cells.append(quad((up['rearX']+.35,up['elevation']+.05,-up['width']/2+.35),(up['frontX']-.05,up['elevation']+.05,-up['width']/2+.35),(up['frontX']-.05,up['elevation']+.05,up['width']/2-.35),(up['rearX']+.35,up['elevation']+.05,up['width']/2-.35)))
+    # Walk out onto the cantilevered tray. Without this the navmesh stops at the
+    # old deck edge and the tray is scenery you can look at but never stand on,
+    # which is the whole point of it.
+    g=CFG['glassTray']; gw=g['width']/2-inset
+    x=halfD-inset
+    while x<g['outerX']-inset:
+        z=-gw
+        while z<gw:
+            cells.append(quad((x-step/2,gy,z-step/2),(x+step/2,gy,z-step/2),(x+step/2,gy,z+step/2),(x-step/2,gy,z+step/2)))
+            z+=step
+        x+=step
     mats=[{'name':'Navmesh','pbrMetallicRoughness':{'baseColorFactor':[0,1,0,1],'metallicFactor':0,'roughnessFactor':1}}]
     glb(ROOT/'assets/nav/navmesh.glb',[(*merge(cells),0)],mats)
 
 if __name__=='__main__':
     build_deck(); build_navmesh()
     print('Generated deck.glb and navmesh.glb; tower.glb is preserved unchanged')
+    print(f"  glass tray cantilevered to X {CFG['glassTray']['innerX']}..{CFG['glassTray']['outerX']} (roof ends at 22.98)")

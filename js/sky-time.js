@@ -38,28 +38,28 @@ AFRAME.registerComponent('sky-time', {
       top: '#2b5f96', horizon: '#e8c39a', tint: '#ffbe78', sunCol: '#ffe6c0',
       dir: { x: 0.72, y: 0.10, z: -0.68 },
       fog: '#e2c6a8', fogNear: 250, fogFar: 3600,
-      sunInt: 0.55, ambInt: 0.55, sunSize: 0.030, sunGlow: 0.42
+      sunInt: 0.55, ambInt: 0.55, sunSize: 0.030, sunGlow: 0.42, stars: 0.10
     },
     day: {
       label: 'Day',
       top: '#2f6ea6', horizon: '#cdd9e5', tint: '#ffd9a0', sunCol: '#fff6e0',
       dir: { x: 0.35, y: 0.72, z: -0.60 },
       fog: '#cdd9e5', fogNear: 350, fogFar: 4600,
-      sunInt: 0.75, ambInt: 0.90, sunSize: 0.022, sunGlow: 0.26
+      sunInt: 0.75, ambInt: 0.90, sunSize: 0.022, sunGlow: 0.26, stars: 0.0
     },
     dusk: {
       label: 'Dusk',
       top: '#1d3f74', horizon: '#f0a877', tint: '#ff9d5c', sunCol: '#ffd0a0',
       dir: { x: -0.76, y: 0.06, z: 0.64 },
       fog: '#d9a684', fogNear: 200, fogFar: 3200,
-      sunInt: 0.45, ambInt: 0.45, sunSize: 0.034, sunGlow: 0.48
+      sunInt: 0.45, ambInt: 0.45, sunSize: 0.034, sunGlow: 0.48, stars: 0.22
     },
     night: {
       label: 'Night',
       top: '#070d1c', horizon: '#243a55', tint: '#31527a', sunCol: '#9fb6d6',
       dir: { x: -0.5, y: -0.35, z: 0.5 },
       fog: '#1d2c42', fogNear: 150, fogFar: 2800,
-      sunInt: 0.10, ambInt: 0.22, sunSize: 0.016, sunGlow: 0.16
+      sunInt: 0.10, ambInt: 0.22, sunSize: 0.016, sunGlow: 0.16, stars: 1.0
     }
   },
 
@@ -73,6 +73,8 @@ AFRAME.registerComponent('sky-time', {
     this.from = null;
     this.to = null;
     this.t = 1;
+    this.clock = 0;
+    this.starPreset = null;
 
     this.onButton = this.onButton.bind(this);
     if (this.data.button) { this.data.button.addEventListener('click', this.onButton); }
@@ -113,11 +115,22 @@ AFRAME.registerComponent('sky-time', {
     return {
       top: p.top, horizon: p.horizon, tint: p.tint, sunCol: p.sunCol,
       dir: p.dir, fog: p.fog, fogNear: p.fogNear, fogFar: p.fogFar,
-      sunInt: p.sunInt, ambInt: p.ambInt, sunSize: p.sunSize, sunGlow: p.sunGlow
+      sunInt: p.sunInt, ambInt: p.ambInt, sunSize: p.sunSize, sunGlow: p.sunGlow,
+      stars: p.stars
     };
   },
 
   tick: function (time, dt) {
+    this.clock += (dt || 16) / 1000;
+
+    // Advance the twinkle while settled, without redoing the whole apply().
+    if (this.t >= 1 && this.data.sky && this.presets[this.current].stars > 0.001) {
+      var m = this.data.sky.getObject3D('mesh');
+      if (m && m.material && m.material.uniforms && m.material.uniforms.starTime) {
+        m.material.uniforms.starTime.value = this.clock;
+      }
+    }
+
     if (this.t >= 1 || !this.to) { return; }
     this.t = Math.min(1, this.t + (dt || 16) / this.data.fadeMs);
     // Ease so the change starts and ends gently.
@@ -144,7 +157,8 @@ AFRAME.registerComponent('sky-time', {
       sunInt: n(a.sunInt, b.sunInt),
       ambInt: n(a.ambInt, b.ambInt),
       sunSize: n(a.sunSize, b.sunSize),
-      sunGlow: n(a.sunGlow, b.sunGlow)
+      sunGlow: n(a.sunGlow, b.sunGlow),
+      stars: n(a.stars, b.stars)
     };
   },
 
@@ -158,7 +172,9 @@ AFRAME.registerComponent('sky-time', {
         sunColor: p.sunCol,
         sunDirection: p.dir,
         sunSize: p.sunSize,
-        sunGlow: p.sunGlow
+        sunGlow: p.sunGlow,
+        starOpacity: p.stars,
+        starTime: this.clock
       });
     }
 
