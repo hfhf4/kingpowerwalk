@@ -46,7 +46,13 @@ AFRAME.registerShader('gradient-sky', {
     // Shifts the pale band below eye level, unitless in -1..1. A fraction of
     // the dome rather than world metres, so it stays correct whatever radius
     // the sky is given — and it has to be given a large one, see above.
-    horizonBias:  { type: 'number', default: -0.3, is: 'uniform' }
+    horizonBias:  { type: 'number', default: -0.3, is: 'uniform' },
+    // 0 by day, 1 at night. sky-time drives it through the same interpolation
+    // as every other parameter, so stars fade in with the transition.
+    starOpacity:  { type: 'number', default: 0.0, is: 'uniform' },
+    starDensity:  { type: 'number', default: 0.965, is: 'uniform' },
+    // Advances the twinkle. sky-time ticks it.
+    starTime:     { type: 'number', default: 0.0, is: 'uniform' }
   },
 
   vertexShader: [
@@ -68,7 +74,36 @@ AFRAME.registerShader('gradient-sky', {
     'uniform float sunGlow;',
     'uniform float exponent;',
     'uniform float horizonBias;',
+    'uniform float starOpacity;',
+    'uniform float starDensity;',
+    'uniform float starTime;',
     'varying vec3 vWorldPosition;',
+
+    // Cheap 3D hash. Stars have to be a function of *direction* so they stay
+    // fixed in the sky as the player walks, rather than sliding with the dome.
+    'float hash13(vec3 p) {',
+    '  p = fract(p * 0.1031);',
+    '  p += dot(p, p.yzx + 33.33);',
+    '  return fract((p.x + p.y) * p.z);',
+    '}',
+
+    'float starField(vec3 dir) {',
+    // Quantise direction into cells; one candidate star per cell.
+    '  vec3 cell = floor(dir * 260.0);',
+    '  float h = hash13(cell);',
+    '  if (h < starDensity) { return 0.0; }',
+    // Remap the surviving tail to 0..1 so brightness varies rather than every
+    // star being identical.
+    '  float mag = (h - starDensity) / max(1.0 - starDensity, 1e-4);',
+    // Sub-cell position, so stars are not locked to a visible grid.
+    '  vec3 jitter = vec3(hash13(cell + 1.7), hash13(cell + 4.3), hash13(cell + 9.1));',
+    '  vec3 centre = (cell + jitter) / 260.0;',
+    '  float d = length(dir - normalize(centre));',
+    '  float point = 1.0 - smoothstep(0.0, 0.0022, d);',
+    // Slow, per-star twinkle.
+    '  float tw = 0.72 + 0.28 * sin(starTime * 1.6 + h * 90.0);',
+    '  return point * mag * tw;',
+    '}',
 
     'void main() {',
     // Direction only, so the gradient is independent of the dome's radius.
@@ -95,6 +130,14 @@ AFRAME.registerShader('gradient-sky', {
 
     '  float disc = 1.0 - smoothstep(sunSize * 0.85, sunSize * 1.35, ang);',
     '  col = mix(col, sunColor, disc);',
+
+    // Stars last, and additive. Faded out near the horizon where haze and city
+    // glow would drown them, and killed entirely below it.
+    '  if (starOpacity > 0.001) {',
+    '    float alt = smoothstep(-0.02, 0.34, dir.y);',
+    '    float s = starField(normalize(vWorldPosition)) * starOpacity * alt;',
+    '    col += vec3(0.86, 0.90, 1.0) * s;',
+    '  }',
 
     '  gl_FragColor = vec4(col, 1.0);',
     '}'

@@ -2,19 +2,78 @@
   "version": 1,
   "status": "photo-derived-blockout",
   "units": "metres",
-  "axes": { "up": "+Y", "depth": "+X rear-to-front", "width": "+Z" },
-  "deck": { "depth": 38.4, "width": 19.2, "elevation": 0.03 },
-  "glassTray": { "depth": 3.28125, "width": 19.2, "area": 63.0, "at": "front" },
-  "upperViewingArea": { "rearX": -12.0, "frontX": -2.0, "width": 11.0, "elevation": 4.0 },
-  "stairs": { "rearX": -2.0, "frontX": 7.5, "topWidth": 11.0, "bottomWidth": 8.2, "steps": 20 },
-  "elevator": { "centre": [-14.0, -6.4], "diameter": 5.0, "height": 4.2 },
-  "railings": { "height": 1.1, "navmeshInset": 0.9 },
-  "spawn": [10.0, 0.05, 0.0],
-  "viewpoints": [[17.0, 0.05, 0.0], [10.0, 0.05, 6.5], [-7.0, 4.05, 0.0]],
+  "axes": {
+    "up": "+Y",
+    "depth": "+X rear-to-front",
+    "width": "+Z"
+  },
+  "deck": {
+    "depth": 38.4,
+    "width": 19.2,
+    "elevation": 0.03
+  },
+  "glassTray": {
+    "depth": 3.28125,
+    "width": 19.2,
+    "area": 63.0,
+    "at": "front",
+    "innerX": 23.6,
+    "outerX": 26.88125,
+    "cantilever": true,
+    "note": "Outer edge clears the tower roof (X=22.98) so the drop is real, as on the actual SkyWalk. Area preserved at 63 m2."
+  },
+  "upperViewingArea": {
+    "rearX": -12.0,
+    "frontX": -2.0,
+    "width": 11.0,
+    "elevation": 4.0
+  },
+  "stairs": {
+    "rearX": -2.0,
+    "frontX": 7.5,
+    "topWidth": 11.0,
+    "bottomWidth": 8.2,
+    "steps": 20
+  },
+  "elevator": {
+    "centre": [
+      -14.0,
+      -6.4
+    ],
+    "diameter": 5.0,
+    "height": 4.2
+  },
+  "railings": {
+    "height": 1.1,
+    "navmeshInset": 0.9
+  },
+  "spawn": [
+    10.0,
+    0.05,
+    0.0
+  ],
+  "viewpoints": [
+    [
+      17.0,
+      0.05,
+      0.0
+    ],
+    [
+      10.0,
+      0.05,
+      6.5
+    ],
+    [
+      -7.0,
+      4.05,
+      0.0
+    ]
+  ],
   "assumptions": [
     "Depth is exactly twice width, per approved user plan.",
-    "Glass tray spans the full front width; 63 m2 fixes its depth at 3.28125 m.",
     "Elevator, upper platform and stair dimensions are photo-derived blockout estimates.",
-    "The public-deck envelope is centred inside the approximately 45.958 by 19.182 m committed roof bounds."
+    "The public-deck envelope is centred inside the approximately 45.958 by 19.182 m committed roof bounds.",
+    "Tower roof slab measured at X = 22.98 in tower.glb; the glass tray starts beyond it at X = 23.60 so nothing is underneath.",
+    "Glass tray keeps its 63 m2: 19.2 m wide by 3.28125 m deep, cantilevered rather than inset."
   ]
 }
