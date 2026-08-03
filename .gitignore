@@ -63,3 +63,7 @@ desktop.ini
 # Source meshes: convert at authoring time, commit only the glTF result.
 *.stl
 *.STL
+
+# Python bytecode from the asset tools
+__pycache__/
+*.pyc
