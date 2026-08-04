@@ -152,6 +152,32 @@ as a thin surface just above the roof, with a parapet wherever a cell borders so
 that is not walkable. The navmesh is the same mask eroded by 1 m so the avatar's
 shoulders cannot overhang the edge — 628 m² of deck, 436 m² of it walkable.
 
+### Tuning the layout — `?tune`
+
+Add `?tune` to the URL for a dev panel that previews layout and prop changes live.
+Without it nothing loads: no panel, no stylesheet, no generator.
+
+The panel exists because the two things worth nudging sit on opposite sides of the
+build. The sign, the viewpoint rings and the spawn point are entity attributes, so any
+inspector could move them — but deck depth, tray extent, railing inset, stairs, The Peak
+and the elevator live in `data/level78-layout.json` and are baked into `deck.glb` /
+`navmesh.glb` by `tools/build_level78.py`. An inspector can drag the finished mesh; it
+cannot make the tray deeper and give you a navmesh that agrees.
+
+So `js/level78-geometry.js` is that generator ported to the browser: move a slider and
+both meshes regenerate, including the navmesh, so you can **walk out onto a proposed
+layout immediately**. Two guards run while you drag, because both of these have shipped
+broken once — the tray must stay clear of the tower roof at X = 22.98, and the navmesh
+must stay continuous from the deck out to the tray.
+
+It is preview only. Nothing is written back; `tools/build_level78.py` stays the single
+source of truth for what ships. Settle on numbers, copy them out of the readout pane,
+put them in `data/level78-layout.json` and re-run the script.
+
+Two implementations of one generator can drift, so the test harness compares the port
+against the committed GLBs on vertex count, triangle count and bounding box. They match
+exactly today (272v/436t opaque, 56v/84t glass, 10228v/5114t navmesh).
+
 ### The skyline
 
 `skyline.glb` is 7,550 Bangkok building footprints from OpenStreetMap, extruded to their
